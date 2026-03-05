@@ -4,567 +4,473 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MakerPath — Challenge Platform</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --yellow:  #FFE040;
-  --orange:  #FF6B2B;
-  --teal:    #00C2A8;
-  --ink:     #0D0D0D;
-  --paper:   #F5F0E8;
-  --white:   #FFFFFF;
-  --mid:     #2A2A2A;
-  --muted:   rgba(13,13,13,0.45);
+  --yellow: #FFE040;
+  --orange: #FF6B2B;
+  --teal:   #00C2A8;
+  --ink:    #0D0D0D;
+  --paper:  #F5F0E8;
+  --white:  #FFFFFF;
+  --mid:    #2A2A2A;
+  --muted:  rgba(13,13,13,0.42);
+  --border: rgba(13,13,13,0.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--paper);}
+::-webkit-scrollbar-thumb{background:rgba(13,13,13,0.18);border-radius:3px;}
 
-  /* tier accent map */
-  --t1: var(--yellow);
-  --t2: var(--orange);
-  --t3: var(--teal);
+/* ════════════════ TOPBAR ════════════════ */
+.topbar{
+  background:var(--ink);height:54px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 40px;position:sticky;top:0;z-index:200;
+  border-bottom:2px solid rgba(255,224,64,0.15);
 }
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:var(--paper);}
+.logo span{color:var(--yellow);}
+.topnav{display:flex;gap:6px;}
+.tnbtn{
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+  padding:7px 18px;border:1.5px solid rgba(255,255,255,0.12);background:transparent;
+  color:rgba(245,240,232,0.45);cursor:pointer;transition:all .2s;
+}
+.tnbtn:hover,.tnbtn.act{border-color:var(--yellow);color:var(--yellow);background:rgba(255,224,64,0.06);}
+.tnbtn.adm{border-color:rgba(0,194,168,0.4);color:var(--teal);}
+.tnbtn.adm:hover{background:rgba(0,194,168,0.08);}
 
-* { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior:smooth; }
-
-body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: 'DM Sans', sans-serif;
-  overflow-x: hidden;
+/* ════════════════ HERO ════════════════ */
+.hero{
+  background:var(--ink);padding:56px 40px 52px;
+  position:relative;overflow:hidden;
 }
-
-/* ─── SCROLLBAR ─── */
-::-webkit-scrollbar { width:5px; }
-::-webkit-scrollbar-track { background: var(--paper); }
-::-webkit-scrollbar-thumb { background: rgba(13,13,13,0.2); border-radius:3px; }
-
-/* ═══════════════════════════════
-   HERO / NAV BAR
-═══════════════════════════════ */
-.topbar {
-  background: var(--ink);
-  padding: 0 40px;
-  height: 52px;
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 100;
-  border-bottom: 2px solid rgba(255,224,64,0.2);
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(-45deg,transparent,transparent 20px,
+    rgba(255,224,64,0.03) 20px,rgba(255,224,64,0.03) 21px);
 }
-.topbar-logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 22px; letter-spacing: 2px; color: var(--paper);
+.hero-inner{max-width:1100px;margin:0 auto;position:relative;}
+.hero-ghost{
+  position:absolute;right:-20px;top:-30px;
+  font-family:'Bebas Neue',sans-serif;font-size:220px;line-height:1;
+  color:rgba(255,224,64,0.05);pointer-events:none;user-select:none;
 }
-.topbar-logo span { color: var(--yellow); }
-.topbar-nav { display:flex; gap:6px; }
-.topbar-btn {
-  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
-  text-transform: uppercase; padding: 6px 16px;
-  border: 1px solid rgba(255,255,255,0.15); background: transparent;
-  color: rgba(245,240,232,0.5); cursor: pointer; transition: all .2s;
-  border-radius: 2px;
+.hero-eye{
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;
+  color:var(--yellow);text-transform:uppercase;margin-bottom:20px;
+  display:flex;align-items:center;gap:14px;
 }
-.topbar-btn:hover, .topbar-btn.active {
-  border-color: var(--yellow); color: var(--yellow);
-  background: rgba(255,224,64,0.06);
+.hero-eye::after{content:'';flex:1;height:1px;background:rgba(255,224,64,0.18);}
+.hero h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(58px,9.5vw,110px);line-height:.9;letter-spacing:1px;color:var(--paper);
 }
-.topbar-btn.admin { border-color: rgba(0,194,168,0.4); color: var(--teal); }
-.topbar-btn.admin:hover { background: rgba(0,194,168,0.08); }
-
-/* ─── HERO ─── */
-.hero {
-  background: var(--ink);
-  padding: 52px 40px 48px;
-  position: relative; overflow: hidden;
+.hero h1 em{font-style:normal;color:var(--yellow);display:block;}
+.hero-sub{
+  margin-top:22px;max-width:500px;
+  font-family:'Space Mono',monospace;font-size:12px;line-height:1.9;
+  color:rgba(245,240,232,0.42);
 }
-.hero::before {
-  content:'';
-  position:absolute; inset:0;
-  background: repeating-linear-gradient(
-    -45deg, transparent, transparent 20px,
-    rgba(255,224,64,0.03) 20px, rgba(255,224,64,0.03) 21px
-  );
-}
-.hero-inner { position: relative; max-width: 1080px; margin: 0 auto; }
-.hero-eyebrow {
-  font-family: 'Space Mono', monospace; font-size: 10px;
-  letter-spacing: 3px; text-transform: uppercase;
-  color: var(--yellow); margin-bottom: 18px;
-  display: flex; align-items: center; gap: 14px;
-}
-.hero-eyebrow::after { content:''; height:1px; flex:1; background: rgba(255,224,64,0.2); }
-
-.hero h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(60px,10vw,108px);
-  line-height: 0.9; letter-spacing: 1px;
-  color: var(--paper);
-}
-.hero h1 em { font-style:normal; color: var(--yellow); display:block; }
-
-.hero-sub {
-  margin-top: 22px; max-width: 480px;
-  font-family: 'Space Mono', monospace; font-size: 12px;
-  line-height: 1.8; color: rgba(245,240,232,0.45);
-}
-
 /* tier pills */
-.hero-pills { display:flex; gap:10px; margin-top: 32px; flex-wrap:wrap; }
-.pill {
-  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
-  text-transform: uppercase; padding: 8px 22px;
-  border: 1.5px solid; cursor: pointer; transition: all .2s;
-  user-select: none;
+.tier-pills{display:flex;gap:10px;margin-top:34px;flex-wrap:wrap;}
+.tpill{
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;
+  text-transform:uppercase;padding:8px 24px;border:1.5px solid;
+  cursor:pointer;transition:all .2s;user-select:none;
 }
-.pill[data-tier="all"]  { border-color: rgba(245,240,232,0.3); color: rgba(245,240,232,0.5); }
-.pill[data-tier="1"]    { border-color: rgba(255,224,64,0.5); color: var(--yellow); }
-.pill[data-tier="2"]    { border-color: rgba(255,107,43,0.5); color: var(--orange); }
-.pill[data-tier="3"]    { border-color: rgba(0,194,168,0.5); color: var(--teal); }
-.pill[data-tier="all"].active, .pill[data-tier="all"]:hover  { background:var(--paper); color:var(--ink); border-color:var(--paper); }
-.pill[data-tier="1"].active, .pill[data-tier="1"]:hover      { background:var(--yellow); color:var(--ink); border-color:var(--yellow); }
-.pill[data-tier="2"].active, .pill[data-tier="2"]:hover      { background:var(--orange); color:var(--white); border-color:var(--orange); }
-.pill[data-tier="3"].active, .pill[data-tier="3"]:hover      { background:var(--teal); color:var(--ink); border-color:var(--teal); }
+.tpill[data-t="all"]{border-color:rgba(245,240,232,0.25);color:rgba(245,240,232,0.45);}
+.tpill[data-t="1"]  {border-color:rgba(255,224,64,.5);color:var(--yellow);}
+.tpill[data-t="2"]  {border-color:rgba(255,107,43,.5);color:var(--orange);}
+.tpill[data-t="3"]  {border-color:rgba(0,194,168,.5); color:var(--teal);}
+.tpill[data-t="all"].on,.tpill[data-t="all"]:hover{background:var(--paper);color:var(--ink);border-color:var(--paper);}
+.tpill[data-t="1"].on,.tpill[data-t="1"]:hover    {background:var(--yellow);color:var(--ink);border-color:var(--yellow);}
+.tpill[data-t="2"].on,.tpill[data-t="2"]:hover    {background:var(--orange);color:var(--white);border-color:var(--orange);}
+.tpill[data-t="3"].on,.tpill[data-t="3"]:hover    {background:var(--teal);color:var(--ink);border-color:var(--teal);}
 
-/* big ghost number */
-.hero-ghost {
-  position:absolute; right:-10px; top:-20px;
-  font-family:'Bebas Neue',sans-serif; font-size:180px; line-height:1;
-  color: rgba(255,224,64,0.05); pointer-events:none; user-select:none;
+/* ════════════════ DOMAIN STRIP ════════════════ */
+.domain-strip{
+  background:var(--white);border-bottom:2px solid var(--ink);
+  padding:11px 40px;display:flex;gap:8px;flex-wrap:wrap;
+  position:sticky;top:54px;z-index:190;
 }
+.dchip{
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  padding:5px 14px;border:1.5px solid var(--border);color:var(--muted);
+  cursor:pointer;transition:all .2s;background:transparent;
+}
+.dchip:hover{border-color:var(--ink);color:var(--ink);}
+.dchip.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 
-/* ═══════════════════════════════
-   DOMAIN FILTER TAPE
-═══════════════════════════════ */
-.domain-tape {
-  background: var(--white);
-  border-bottom: 2px solid var(--ink);
-  padding: 12px 40px;
-  display: flex; gap: 8px; flex-wrap: wrap;
-  max-width: 100%;
-  position: sticky; top: 52px; z-index: 90;
+/* ════════════════ TIER SECTION ════════════════ */
+.tier-section{max-width:1100px;margin:0 auto;padding:52px 40px 8px;}
+.tier-hdr{
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:32px;padding-bottom:18px;border-bottom:2px solid var(--ink);
 }
-.domain-chip {
-  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px;
-  padding: 5px 14px; border: 1.5px solid rgba(13,13,13,0.15);
-  color: var(--muted); cursor: pointer; transition: all .2s;
-  background: transparent;
+.tier-badge{
+  font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;
+  padding:5px 16px;border:2px solid;
 }
-.domain-chip:hover { border-color: var(--ink); color: var(--ink); }
-.domain-chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.t1 .tier-badge{border-color:var(--yellow);color:var(--yellow);background:rgba(255,224,64,.08);}
+.t2 .tier-badge{border-color:var(--orange);color:var(--orange);background:rgba(255,107,43,.08);}
+.t3 .tier-badge{border-color:var(--teal);  color:var(--teal);  background:rgba(0,194,168,.08);}
+.tier-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;}
+.tier-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto;text-align:right;line-height:1.6;}
 
-/* ═══════════════════════════════
-   TIER SECTIONS
-═══════════════════════════════ */
-#main-view { display:block; }
-#main-view.hidden { display:none; }
+/* ════════════════ CHALLENGE CARD (inspired by first design) ════════════════ */
+/* Each challenge is a full-width card like the original zine layout */
+.challenge{
+  border:2px solid var(--ink);background:var(--white);
+  margin-bottom:28px;position:relative;overflow:hidden;
+  transition:box-shadow .2s;
+}
+.challenge:hover{box-shadow:4px 4px 0 var(--ink);}
 
-.tier-section { padding: 48px 40px 20px; max-width: 1080px; margin: 0 auto; }
+/* coloured header band */
+.ch-header{
+  padding:26px 32px 22px;border-bottom:2px solid var(--ink);
+  display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:start;
+}
+.ch-num{
+  font-family:'Bebas Neue',sans-serif;font-size:80px;line-height:.85;
+  opacity:.13;
+}
+.t1 .ch-header{background:var(--yellow);}
+.t2 .ch-header{background:var(--orange);}
+.t3 .ch-header{background:var(--teal);}
+.t2 .ch-num,.t2 .ch-tag,.t2 .ch-title,.t2 .ch-q{color:var(--white)!important;}
+.t2 .ch-tag{background:rgba(255,255,255,.18)!important;color:var(--white)!important;}
 
-.tier-header {
-  display: flex; align-items: center; gap: 18px;
-  margin-bottom: 28px; padding-bottom: 18px;
-  border-bottom: 2px solid var(--ink);
+.ch-meta{}
+.ch-tag{
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  background:rgba(13,13,13,.12);color:var(--ink);display:inline-block;
+  padding:3px 10px;margin-bottom:10px;
 }
-.tier-badge {
-  font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 3px;
-  padding: 5px 14px; border: 2px solid;
+.ch-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,4vw,44px);line-height:1;color:var(--ink);}
+.ch-q{
+  margin-top:7px;font-family:'Space Mono',monospace;font-size:12px;
+  font-style:italic;color:rgba(13,13,13,.65);line-height:1.6;
 }
-.t1 .tier-badge { border-color:var(--yellow); color:var(--yellow); background:rgba(255,224,64,0.08); }
-.t2 .tier-badge { border-color:var(--orange); color:var(--orange); background:rgba(255,107,43,0.08); }
-.t3 .tier-badge { border-color:var(--teal);   color:var(--teal);   background:rgba(0,194,168,0.08); }
+.ch-badges{display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.ch-time{
+  font-family:'Space Mono',monospace;font-size:10px;
+  padding:4px 12px;border:1.5px solid rgba(13,13,13,.2);
+  background:rgba(255,255,255,.4);color:var(--mid);white-space:nowrap;
+}
+.t2 .ch-time{border-color:rgba(255,255,255,.3);color:rgba(255,255,255,.8);background:rgba(0,0,0,.15);}
+.ch-expand{
+  font-family:'Space Mono',monospace;font-size:10px;
+  padding:4px 12px;border:1.5px solid var(--ink);
+  background:var(--ink);color:var(--paper);cursor:pointer;
+  transition:all .2s;white-space:nowrap;
+}
+.ch-expand:hover{background:transparent;color:var(--ink);}
+.t2 .ch-expand{background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.4);color:var(--white);}
+.t2 .ch-expand:hover{background:rgba(0,0,0,.5);}
 
-.tier-name {
-  font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 1px;
-}
-.tier-sub {
-  font-family: 'Space Mono', monospace; font-size: 10px;
-  color: var(--muted); margin-left: auto;
-}
+/* body grid */
+.ch-body{padding:0 32px 0;display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.ch-col{padding:26px 0;}
+.ch-col:first-child{border-right:1px solid var(--border);padding-right:28px;}
+.ch-col:last-child{padding-left:28px;}
 
-/* ═══════════════════════════════
-   CHALLENGE GRID & CARDS
-═══════════════════════════════ */
-.challenge-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 0;
-  border: 2px solid var(--ink);
+.sec-label{
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--muted);
+  display:flex;align-items:center;gap:10px;margin-bottom:12px;
 }
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
 
-.card {
-  border-right: 2px solid var(--ink);
-  border-bottom: 2px solid var(--ink);
-  background: var(--white);
-  display: flex; flex-direction: column;
-  cursor: pointer;
-  transition: background .15s;
-  position: relative;
-  overflow: hidden;
-}
-.card:hover { background: var(--paper); }
-/* accent stripe on hover */
-.card::before {
-  content:'';
-  position:absolute; top:0; left:0; right:0; height:3px;
-  transform: scaleX(0); transform-origin: left;
-  transition: transform .25s;
-}
-.t1 .card::before { background: var(--yellow); }
-.t2 .card::before { background: var(--orange); }
-.t3 .card::before { background: var(--teal); }
-.card:hover::before { transform: scaleX(1); }
+.sec-text{font-size:14px;line-height:1.8;color:var(--mid);}
+.sec-text strong{color:var(--ink);}
 
-.card-head {
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid rgba(13,13,13,0.08);
-  display: flex; align-items: flex-start; justify-content: space-between; gap:10px;
+/* steps */
+.steps-list{display:flex;flex-direction:column;gap:11px;}
+.step{display:flex;gap:13px;align-items:flex-start;}
+.step-dot{
+  width:26px;height:26px;border-radius:50%;border:1.5px solid;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;
 }
-.card-domain {
-  font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 2px;
-  text-transform: uppercase; padding: 3px 10px; border: 1px solid;
-}
-.t1 .card-domain { border-color:var(--yellow); color:rgba(13,13,13,0.6); background:rgba(255,224,64,0.12); }
-.t2 .card-domain { border-color:var(--orange); color:rgba(13,13,13,0.6); background:rgba(255,107,43,0.10); }
-.t3 .card-domain { border-color:var(--teal);   color:rgba(13,13,13,0.6); background:rgba(0,194,168,0.10); }
+.t1 .step-dot{border-color:var(--ink);background:rgba(255,224,64,.25);color:var(--ink);}
+.t2 .step-dot{border-color:var(--orange);background:rgba(255,107,43,.1);color:var(--orange);}
+.t3 .step-dot{border-color:var(--teal);background:rgba(0,194,168,.1);color:var(--teal);}
+.step p{font-size:14px;line-height:1.75;color:var(--mid);}
 
-.card-time {
-  font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); white-space:nowrap;
-}
-
-.card-body { padding: 16px 20px; flex:1; }
-.card-title {
-  font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 0.5px;
-  line-height: 1.05; margin-bottom: 8px;
-}
-.card-mystery {
-  font-family: 'Space Mono', monospace; font-size: 11px; font-style:italic;
-  color: var(--muted); line-height: 1.65; margin-bottom: 14px;
-}
-
-.card-levels { display:flex; flex-direction:column; gap:6px; }
-.level-row {
-  display:flex; align-items:center; gap:10px;
-  padding: 7px 10px;
-  background: rgba(13,13,13,0.03);
-  border: 1px solid rgba(13,13,13,0.07);
-}
-.level-num {
-  font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1px;
-  color: var(--muted); min-width:34px;
-}
-.level-title { font-size:12px; color:var(--mid); }
-
-.card-foot {
-  padding: 12px 20px;
-  border-top: 1px solid rgba(13,13,13,0.08);
-  display:flex; gap:8px;
-}
-.btn-card {
-  font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.5px;
-  padding: 7px 14px; border: 1.5px solid var(--ink);
-  background:transparent; color:var(--ink); cursor:pointer;
-  transition: all .15s; flex:1; text-align:center;
-}
-.btn-card:hover { background:var(--ink); color:var(--paper); }
-.btn-dl {
-  border-color: var(--muted); color:var(--muted);
-}
-.t1 .btn-dl:hover { background:var(--yellow); border-color:var(--yellow); color:var(--ink); }
-.t2 .btn-dl:hover { background:var(--orange); border-color:var(--orange); color:var(--white); }
-.t3 .btn-dl:hover { background:var(--teal);   border-color:var(--teal);   color:var(--ink); }
-
-/* ═══════════════════════════════
-   SCROLLING TAPE DIVIDER
-═══════════════════════════════ */
-.tape-divider {
-  height: 30px; background:var(--ink);
-  display:flex; align-items:center; overflow:hidden;
-  margin: 40px 0 0;
-}
-.tape-scroll {
-  font-family:'Space Mono',monospace; font-size:9px; letter-spacing:4px;
-  text-transform:uppercase; color:rgba(245,240,232,0.18);
-  white-space:nowrap; animation: tapescroll 22s linear infinite;
-}
-@keyframes tapescroll {
-  from { transform:translateX(0); }
-  to   { transform:translateX(-50%); }
+/* loot tags */
+.loot-wrap{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;}
+.loot-tag{
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.3px;
+  padding:4px 12px;border:1.5px solid var(--border);color:var(--mid);background:var(--paper);
 }
 
-/* ═══════════════════════════════
-   MODAL
-═══════════════════════════════ */
-.overlay {
-  position:fixed; inset:0; z-index:200;
-  background:rgba(13,13,13,0.75);
-  backdrop-filter:blur(4px);
-  display:none; align-items:center; justify-content:center; padding:20px;
+/* levels */
+.levels-list{display:flex;flex-direction:column;gap:7px;margin-top:4px;}
+.lv-row{
+  display:flex;align-items:center;gap:12px;
+  padding:8px 12px;border:1px solid var(--border);background:var(--paper);
 }
-.overlay.open { display:flex; }
+.lv-n{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);min-width:36px;}
+.lv-t{font-size:13px;color:var(--mid);}
 
-.modal {
-  background:var(--paper); border:2px solid var(--ink);
-  width:100%; max-width:680px; max-height:90vh; overflow-y:auto;
-  position:relative; animation:modalPop .22s ease;
+/* reflection block (T2 only) */
+.reflection-block{
+  padding:16px 20px;border-left:4px solid var(--orange);
+  background:rgba(255,107,43,.04);margin-top:4px;
 }
-@keyframes modalPop { from { opacity:0; transform:scale(.97) translateY(8px); } }
+.reflection-block p{font-size:13px;line-height:1.8;color:var(--mid);font-style:italic;}
 
-.modal-header {
-  padding: 28px 32px 22px;
-  border-bottom: 2px solid var(--ink);
-  position:sticky; top:0; background:var(--paper); z-index:1;
-  display:flex; align-items:flex-start; justify-content:space-between;
+/* mentor block (T3 only) */
+.mentor-block{
+  padding:16px 20px;border-left:4px solid var(--teal);
+  background:rgba(0,194,168,.04);margin-top:4px;
 }
-.modal-close {
-  background:none; border:1.5px solid var(--ink); color:var(--ink);
-  width:30px; height:30px; cursor:pointer; font-size:14px;
-  display:flex; align-items:center; justify-content:center;
-  flex-shrink:0; margin-left:16px; transition:all .2s;
-}
-.modal-close:hover { background:var(--ink); color:var(--paper); }
+.mentor-block p{font-size:13px;line-height:1.8;color:var(--mid);}
 
-.m-tags { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
-.m-tag {
-  font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px;
-  text-transform:uppercase; padding:3px 10px; border:1.5px solid;
+/* outcomes row */
+.ch-outcomes{
+  display:grid;grid-template-columns:1fr 1fr;
+  border-top:2px solid var(--ink);
 }
-.m-title {
-  font-family:'Bebas Neue',sans-serif; font-size:36px; letter-spacing:0.5px; line-height:1;
+.out-cell{padding:20px 28px;}
+.out-cell:first-child{border-right:1.5px solid var(--ink);}
+.out-icon{font-size:24px;margin-bottom:8px;}
+.out-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.out-text{font-size:13px;line-height:1.7;color:var(--mid);}
+
+/* intuition bar */
+.intuition-bar{
+  padding:18px 32px;border-top:1.5px solid var(--border);
+  display:flex;align-items:flex-start;gap:16px;
+  background:var(--paper);
 }
-.m-mystery {
-  margin-top:6px; font-family:'Space Mono',monospace; font-size:11px;
-  font-style:italic; color:var(--muted); line-height:1.6;
+.int-icon{font-size:22px;flex-shrink:0;margin-top:2px;}
+.int-content{}
+.int-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.int-text{font-size:14px;line-height:1.75;color:var(--mid);}
+.int-text strong{color:var(--ink);}
+
+/* expandable body */
+.ch-expandable{display:none;}
+.ch-expandable.open{display:block;}
+
+/* ════════════════ TAPE DIVIDER ════════════════ */
+.tape{
+  height:30px;background:var(--ink);
+  display:flex;align-items:center;overflow:hidden;margin:40px 0 0;
+}
+.tape-txt{
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;
+  text-transform:uppercase;color:rgba(245,240,232,.15);
+  white-space:nowrap;animation:scroll 20s linear infinite;
+}
+@keyframes scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* ════════════════ PUBLISH MODAL ════════════════ */
+.overlay{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(13,13,13,.75);backdrop-filter:blur(5px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.overlay.open{display:flex;}
+.pub-modal{
+  background:var(--paper);border:2px solid var(--ink);
+  width:100%;max-width:720px;max-height:90vh;overflow-y:auto;
+  animation:pop .22s ease;
+}
+@keyframes pop{from{opacity:0;transform:scale(.97) translateY(8px);}}
+.pub-mhdr{
+  background:var(--ink);padding:28px 32px;
+  display:flex;align-items:flex-start;justify-content:space-between;
+  position:sticky;top:0;z-index:1;
+}
+.pub-htitle{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;color:var(--paper);}
+.pub-hsub{font-family:'Space Mono',monospace;font-size:10px;color:rgba(245,240,232,.4);margin-top:4px;}
+.pub-close{
+  background:none;border:1.5px solid rgba(255,255,255,.2);color:rgba(245,240,232,.5);
+  width:30px;height:30px;cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;margin-left:16px;
+}
+.pub-close:hover{border-color:var(--yellow);color:var(--yellow);}
+.pub-body{padding:32px;}
+
+/* publish platform cards */
+.pub-intro{
+  font-family:'Space Mono',monospace;font-size:12px;line-height:1.9;
+  color:var(--muted);margin-bottom:28px;padding-bottom:24px;border-bottom:1.5px solid var(--border);
+}
+.pub-section-title{
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;
+  margin-bottom:16px;margin-top:28px;
+}
+.pub-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;}
+@media(max-width:580px){.pub-grid{grid-template-columns:1fr;}}
+.pub-platform{
+  border:2px solid var(--ink);background:var(--white);padding:20px;
+  position:relative;transition:box-shadow .15s;cursor:default;
+}
+.pub-platform:hover{box-shadow:3px 3px 0 var(--ink);}
+.pp-flag{
+  position:absolute;top:-1px;right:16px;
+  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;
+  padding:3px 10px;background:var(--yellow);color:var(--ink);border:1.5px solid var(--ink);
+}
+.pp-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:6px;}
+.pp-url{
+  font-family:'Space Mono',monospace;font-size:9px;color:var(--teal);
+  text-decoration:none;display:block;margin-bottom:10px;letter-spacing:.5px;
+}
+.pp-url:hover{text-decoration:underline;}
+.pp-desc{font-size:13px;line-height:1.7;color:var(--mid);margin-bottom:12px;}
+.pp-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.pp-tag{
+  font-family:'Space Mono',monospace;font-size:9px;padding:3px 9px;
+  border:1px solid var(--border);color:var(--muted);
+}
+.pp-tag.green{border-color:rgba(74,222,128,.4);color:#16a34a;background:rgba(74,222,128,.08);}
+.pp-tag.blue {border-color:rgba(56,189,248,.4);color:#0284c7;background:rgba(56,189,248,.08);}
+.pp-tag.orange{border-color:rgba(255,107,43,.4);color:var(--orange);background:rgba(255,107,43,.08);}
+
+.pub-tip{
+  padding:16px 20px;border-left:4px solid var(--yellow);
+  background:rgba(255,224,64,.06);margin-top:20px;
+}
+.pub-tip p{font-size:13px;line-height:1.8;color:var(--mid);}
+.pub-tip strong{color:var(--ink);}
+.pub-tip .tip-label{
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px;
 }
 
-/* modal body sections */
-.modal-body { padding:28px 32px 8px; }
-.ms { margin-bottom:26px; }
-.ms-label {
-  font-family:'Space Mono',monospace; font-size:9px; letter-spacing:3px;
-  text-transform:uppercase; color:var(--muted);
-  display:flex; align-items:center; gap:12px; margin-bottom:10px;
+/* ════════════════ ADMIN VIEW ════════════════ */
+#admin-view{display:none;max-width:1100px;margin:0 auto;padding:40px;}
+#admin-view.open{display:block;}
+.adm-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:32px;padding-bottom:18px;border-bottom:2px solid var(--ink);
 }
-.ms-label::after { content:''; flex:1; height:1px; background:rgba(13,13,13,0.12); }
-
-.ms p { font-size:14px; line-height:1.8; color:var(--mid); }
-.ms strong { color:var(--ink); }
-
-.step-list { display:flex; flex-direction:column; gap:12px; }
-.m-step { display:flex; gap:14px; align-items:flex-start; }
-.m-sn {
-  width:26px; height:26px; border-radius:50%; border:1.5px solid;
-  display:flex; align-items:center; justify-content:center;
-  font-family:'Space Mono',monospace; font-size:10px; font-weight:700;
-  flex-shrink:0; margin-top:1px;
+.adm-title{font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:1px;}
+.adm-title span{color:var(--teal);}
+.adm-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+@media(max-width:700px){.adm-grid{grid-template-columns:1fr;}}
+.adm-card{background:var(--white);border:2px solid var(--ink);padding:28px;}
+.adm-card h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:20px;}
+.tclr{color:var(--teal);}
+.fg{margin-bottom:14px;}
+.fl{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px;}
+.fi,.fsel,.fta{
+  width:100%;background:var(--paper);border:1.5px solid var(--border);
+  color:var(--ink);font-family:'DM Sans',sans-serif;font-size:13px;
+  padding:9px 12px;outline:none;transition:border-color .2s;
 }
-.t1c { border-color:var(--yellow); color:var(--ink); background:rgba(255,224,64,0.2); }
-.t2c { border-color:var(--orange); color:var(--orange); }
-.t3c { border-color:var(--teal);   color:var(--teal); }
-.m-step p { font-size:14px; line-height:1.75; color:var(--mid); }
-
-.loot-wrap { display:flex; flex-wrap:wrap; gap:7px; }
-.loot-tag {
-  font-family:'Space Mono',monospace; font-size:10px; padding:4px 12px;
-  border:1.5px solid rgba(13,13,13,0.15); color:var(--mid);
-  background:var(--white);
+.fi:focus,.fsel:focus,.fta:focus{border-color:var(--teal);}
+.fta{min-height:80px;resize:vertical;}
+.fsel option{background:var(--paper);}
+.btn-add{
+  width:100%;padding:13px;border:2px solid var(--ink);
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;
+  background:var(--ink);color:var(--paper);cursor:pointer;transition:all .2s;margin-top:8px;
 }
-
-.success-box {
-  padding:16px 20px; border:2px solid var(--ink);
-  background:var(--white);
+.btn-add:hover{background:var(--teal);border-color:var(--teal);color:var(--ink);}
+.adm-list{display:flex;flex-direction:column;gap:2px;}
+.adm-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;background:var(--paper);border:1.5px solid var(--border);
 }
-.success-box p { font-size:14px; line-height:1.75; color:var(--mid); }
-
-.intuition-box {
-  padding:16px 20px; border-left:4px solid;
-  background:var(--white);
+.adm-iname{font-weight:500;font-size:13px;}
+.adm-imeta{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;}
+.btn-del{
+  background:none;border:1.5px solid rgba(255,107,43,.35);color:var(--orange);
+  padding:4px 12px;cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;
+  transition:all .2s;flex-shrink:0;margin-left:12px;
 }
-.t1 .intuition-box, .mt1 { border-color:var(--yellow) !important; }
-.t2 .intuition-box, .mt2 { border-color:var(--orange) !important; }
-.t3 .intuition-box, .mt3 { border-color:var(--teal)   !important; }
-.intuition-box p { font-size:14px; line-height:1.75; color:var(--mid); }
-
-/* modal split outcomes row */
-.modal-outcomes {
-  display:grid; grid-template-columns:1fr 1fr;
-  border-top: 2px solid var(--ink);
-}
-.outcome-cell { padding:20px 28px; }
-.outcome-cell:first-child { border-right:2px solid var(--ink); }
-.outcome-label {
-  font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px;
-  text-transform:uppercase; color:var(--muted); margin-bottom:8px;
-}
-.outcome-text { font-size:13px; line-height:1.7; color:var(--mid); }
-
-.modal-footer {
-  padding:18px 32px; border-top:2px solid var(--ink);
-  display:flex; gap:10px; background:var(--paper);
-  position:sticky; bottom:0;
-}
-.btn-modal {
-  flex:1; padding:11px; border:2px solid var(--ink);
-  font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px;
-  text-transform:uppercase; cursor:pointer; transition:all .2s;
-  background:transparent;
-}
-.btn-modal-dl { background:var(--ink); color:var(--paper); }
-.btn-modal-dl:hover { opacity:.85; }
-.btn-modal-cl { color:var(--muted); border-color:rgba(13,13,13,0.2); }
-.btn-modal-cl:hover { border-color:var(--ink); color:var(--ink); }
-
-/* ═══════════════════════════════
-   ADMIN PANEL
-═══════════════════════════════ */
-#admin-view {
-  display:none; max-width:1080px; margin:0 auto; padding:40px;
-}
-#admin-view.open { display:block; }
-
-.admin-header {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:32px; padding-bottom:20px; border-bottom:2px solid var(--ink);
-}
-.admin-title {
-  font-family:'Bebas Neue',sans-serif; font-size:42px; letter-spacing:1px;
-}
-.admin-title span { color:var(--teal); }
-
-.admin-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
-@media(max-width:700px) { .admin-grid { grid-template-columns:1fr; } }
-
-.admin-card {
-  background:var(--white); border:2px solid var(--ink); padding:28px;
-}
-.admin-card h3 {
-  font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:1px;
-  margin-bottom:20px;
-}
-.t3color { color:var(--teal); }
-
-.fg { margin-bottom:14px; }
-.fl {
-  font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px;
-  text-transform:uppercase; color:var(--muted); display:block; margin-bottom:5px;
-}
-.fi, .fs, .ft {
-  width:100%; background:var(--paper); border:1.5px solid rgba(13,13,13,0.2);
-  color:var(--ink); font-family:'Space Mono',monospace; font-size:11px;
-  padding:9px 12px; outline:none; transition:border-color .2s;
-  font-family:'DM Sans',sans-serif;
-}
-.fi:focus, .fs:focus, .ft:focus { border-color:var(--teal); }
-.ft { min-height:80px; resize:vertical; }
-.fs option { background:var(--paper); }
-
-.btn-admin-add {
-  width:100%; padding:12px; border:2px solid var(--ink);
-  font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:2px;
-  background:var(--ink); color:var(--paper); cursor:pointer;
-  transition:all .2s; margin-top:8px;
-}
-.btn-admin-add:hover { background:var(--teal); border-color:var(--teal); color:var(--ink); }
-
-.admin-list { display:flex; flex-direction:column; gap:2px; }
-.admin-item {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:12px 16px; background:var(--paper);
-  border:1.5px solid rgba(13,13,13,0.1);
-}
-.admin-item-name { font-weight:500; font-size:13px; }
-.admin-item-meta {
-  font-family:'Space Mono',monospace; font-size:9px;
-  color:var(--muted); margin-top:2px;
-}
-.btn-del {
-  background:none; border:1.5px solid rgba(255,107,43,0.35);
-  color:var(--orange); padding:4px 12px; cursor:pointer;
-  font-family:'Space Mono',monospace; font-size:9px;
-  transition:all .2s; flex-shrink:0; margin-left:12px;
-}
-.btn-del:hover { background:var(--orange); color:var(--white); border-color:var(--orange); }
+.btn-del:hover{background:var(--orange);color:var(--white);border-color:var(--orange);}
 
 /* toast */
-.toast {
-  position:fixed; bottom:32px; right:32px; z-index:999;
-  background:var(--ink); color:var(--yellow);
-  padding:12px 24px; border:2px solid var(--yellow);
-  font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px;
-  opacity:0; transform:translateY(8px);
-  transition:all .3s; pointer-events:none;
+.toast{
+  position:fixed;bottom:28px;right:28px;z-index:400;
+  background:var(--ink);color:var(--yellow);
+  padding:12px 24px;border:2px solid var(--yellow);
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;
+  opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;
 }
-.toast.show { opacity:1; transform:translateY(0); }
+.toast.show{opacity:1;transform:translateY(0);}
 
-/* ─── RESPONSIVE ─── */
-@media(max-width:640px) {
-  .hero { padding: 40px 20px 36px; }
-  .topbar { padding:0 16px; }
-  .tier-section { padding:36px 20px 16px; }
-  .domain-tape { padding:10px 20px; }
-  .modal-header, .modal-body, .modal-footer { padding-left:20px; padding-right:20px; }
-  .modal-outcomes { grid-template-columns:1fr; }
-  .modal-outcomes .outcome-cell:first-child { border-right:none; border-bottom:2px solid var(--ink); }
-  .admin-grid { grid-template-columns:1fr; }
-  #admin-view { padding:20px; }
+/* main wrapper */
+#main-view{display:block;}
+#main-view.gone{display:none;}
+
+/* responsive */
+@media(max-width:700px){
+  .hero{padding:40px 20px 36px;}
+  .topbar{padding:0 16px;}
+  .tier-section{padding:36px 20px 8px;}
+  .domain-strip{padding:10px 20px;}
+  .ch-header{grid-template-columns:1fr auto;padding:20px;}
+  .ch-num{display:none;}
+  .ch-body{grid-template-columns:1fr;padding:0 20px 0;}
+  .ch-col:first-child{border-right:none;padding-right:0;border-bottom:1px solid var(--border);}
+  .ch-col:last-child{padding-left:0;}
+  .ch-outcomes{grid-template-columns:1fr;}
+  .ch-outcomes .out-cell:first-child{border-right:none;border-bottom:1.5px solid var(--ink);}
+  .intuition-bar{padding:16px 20px;}
+  .pub-body{padding:20px;}
+  .adm-grid{grid-template-columns:1fr;}
+  #admin-view{padding:20px;}
 }
 </style>
 </head>
 <body>
 
-<!-- ──── TOPBAR ──── -->
+<!-- TOPBAR -->
 <nav class="topbar">
-  <div class="topbar-logo">Maker<span>Path</span></div>
-  <div class="topbar-nav">
-    <button class="topbar-btn active" id="btn-challenges" onclick="showMain()">Challenges</button>
-    <button class="topbar-btn admin" onclick="showAdmin()">⚙ Admin</button>
+  <div class="logo">Maker<span>Path</span></div>
+  <div class="topnav">
+    <button class="tnbtn act" id="btn-ch" onclick="showMain()">Challenges</button>
+    <button class="tnbtn" onclick="openPublish()">Publish Guide</button>
+    <button class="tnbtn adm" onclick="showAdmin()">⚙ Admin</button>
   </div>
 </nav>
-
 <div class="toast" id="toast"></div>
 
-<!-- ══════════════════════════════════════════
-     MAIN VIEW
-══════════════════════════════════════════ -->
+<!-- ══════ MAIN VIEW ══════ -->
 <div id="main-view">
-
-  <!-- HERO -->
   <header class="hero">
-    <div class="hero-ghost" id="ghost-num">13</div>
-    <div class="hero-inner" style="max-width:1080px;margin:0 auto;position:relative;">
-      <p class="hero-eyebrow">MakerPath · Challenge Platform</p>
+    <div class="hero-inner">
+      <div class="hero-ghost" id="ghost">13</div>
+      <p class="hero-eye">MakerPath · Challenge Platform</p>
       <h1>BUILD.<em>SOLVE.</em>ARCHITECT.</h1>
-      <p class="hero-sub">Three tiers. Ten domains. Hands-on challenges from your first LED to portfolio-grade systems — no textbooks, just making.</p>
-      <div class="hero-pills">
-        <div class="pill active" data-tier="all"  onclick="filterTier('all',this)">All Tiers</div>
-        <div class="pill"        data-tier="1"    onclick="filterTier('1',this)">T1 · Explorer</div>
-        <div class="pill"        data-tier="2"    onclick="filterTier('2',this)">T2 · Solver</div>
-        <div class="pill"        data-tier="3"    onclick="filterTier('3',this)">T3 · Architect</div>
+      <p class="hero-sub">Three tiers. Ten domains. Hands-on challenges — from your first LED to portfolio-grade systems. No textbooks. Just making, breaking, and learning.</p>
+      <div class="tier-pills">
+        <div class="tpill on" data-t="all" onclick="ftier('all',this)">All Tiers</div>
+        <div class="tpill" data-t="1" onclick="ftier('1',this)">T1 · Explorer</div>
+        <div class="tpill" data-t="2" onclick="ftier('2',this)">T2 · Solver</div>
+        <div class="tpill" data-t="3" onclick="ftier('3',this)">T3 · Architect</div>
       </div>
     </div>
   </header>
+  <div class="domain-strip" id="dstrip"></div>
+  <div id="tc"></div>
+</div>
 
-  <!-- DOMAIN FILTER -->
-  <div class="domain-tape" id="domain-tape"></div>
-
-  <!-- TIERS CONTAINER -->
-  <div id="tiers-container"></div>
-
-</div><!-- /main-view -->
-
-<!-- ══════════════════════════════════════════
-     ADMIN VIEW
-══════════════════════════════════════════ -->
+<!-- ══════ ADMIN VIEW ══════ -->
 <div id="admin-view">
-  <div class="admin-header">
-    <div class="admin-title">Admin <span>Panel</span></div>
-    <button class="topbar-btn active" onclick="showMain()">← Back</button>
+  <div class="adm-hdr">
+    <div class="adm-title">Admin <span>Panel</span></div>
+    <button class="tnbtn act" onclick="showMain()">← Back</button>
   </div>
-  <div class="admin-grid">
-    <!-- ADD -->
-    <div class="admin-card">
-      <h3>+ <span class="t3color">New Challenge</span></h3>
+  <div class="adm-grid">
+    <div class="adm-card">
+      <h3>+ <span class="tclr">New Challenge</span></h3>
       <div class="fg"><label class="fl">Title</label><input class="fi" id="a-title" placeholder="e.g. The Material Bridge"/></div>
       <div class="fg"><label class="fl">The Mystery / Big Question</label><input class="fi" id="a-mystery" placeholder="What makes electricity flow?"/></div>
-      <div class="fg">
-        <label class="fl">Domain</label>
-        <select class="fs" id="a-domain">
+      <div class="fg"><label class="fl">Domain</label>
+        <select class="fsel" id="a-domain">
           <option>Electronics</option><option>AI</option><option>Robotics</option>
           <option>Embedded Systems</option><option>IoT</option><option>3D Printing</option>
           <option>Automation</option><option>Woodworks</option>
@@ -572,560 +478,655 @@ body {
           <option>Parallel Computing</option>
         </select>
       </div>
-      <div class="fg">
-        <label class="fl">Tier</label>
-        <select class="fs" id="a-tier">
+      <div class="fg"><label class="fl">Tier</label>
+        <select class="fsel" id="a-tier">
           <option value="1">T1 — Explorer (30–60 min)</option>
           <option value="2">T2 — Solver (2–4 hrs)</option>
           <option value="3">T3 — Architect (Days–Weeks)</option>
         </select>
       </div>
       <div class="fg"><label class="fl">Time Estimate</label><input class="fi" id="a-time" placeholder="45 min"/></div>
-      <div class="fg"><label class="fl">Mission Description</label><textarea class="ft" id="a-mission" placeholder="What will makers do?"></textarea></div>
+      <div class="fg"><label class="fl">Mission Description</label><textarea class="fta" id="a-mission" placeholder="What will makers do?"></textarea></div>
+      <div class="fg"><label class="fl">Steps (one per line)</label><textarea class="fta" id="a-steps" placeholder="Step 1&#10;Step 2&#10;Step 3"></textarea></div>
       <div class="fg"><label class="fl">Materials / Loot (comma separated)</label><input class="fi" id="a-loot" placeholder="Battery, LED, Wire"/></div>
-      <div class="fg"><label class="fl">Success Goal</label><input class="fi" id="a-success" placeholder="What does winning look like?"/></div>
-      <div class="fg"><label class="fl">Maker's Intuition</label><input class="fi" id="a-intuition" placeholder="The real-world connection..."/></div>
-      <button class="btn-admin-add" onclick="addChallenge()">ADD CHALLENGE →</button>
+      <div class="fg"><label class="fl">Success Goal</label><textarea class="fta" id="a-success" placeholder="What does winning look like?" style="min-height:60px"></textarea></div>
+      <div class="fg"><label class="fl">Maker's Intuition (real-world link)</label><input class="fi" id="a-intuition" placeholder="This is exactly how dimmer switches work..."/></div>
+      <div class="fg"><label class="fl">Levels (comma separated)</label><input class="fi" id="a-levels" placeholder="L1 · Basics, L2 · Advanced"/></div>
+      <button class="btn-add" onclick="addChallenge()">ADD CHALLENGE →</button>
     </div>
-    <!-- MANAGE -->
-    <div class="admin-card">
-      <h3>Manage <span class="t3color">Challenges</span></h3>
-      <div class="admin-list" id="admin-list"></div>
+    <div class="adm-card">
+      <h3>Manage <span class="tclr">Challenges</span></h3>
+      <div class="adm-list" id="adm-list"></div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     MODAL
-══════════════════════════════════════════ -->
-<div class="overlay" id="overlay" onclick="closeOverlay(event)">
-  <div class="modal" id="modal-box">
-    <div class="modal-header">
-      <div style="flex:1">
-        <div class="m-tags" id="m-tags"></div>
-        <div class="m-title" id="m-title"></div>
-        <div class="m-mystery" id="m-mystery"></div>
+<!-- ══════ PUBLISH MODAL ══════ -->
+<div class="overlay" id="pub-overlay" onclick="closePubOverlay(event)">
+  <div class="pub-modal">
+    <div class="pub-mhdr">
+      <div>
+        <div class="pub-htitle">Free Publishing Guide</div>
+        <div class="pub-hsub">Where to host your MakerPath platform — for free, forever.</div>
       </div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="pub-close" onclick="closePublish()">✕</button>
     </div>
-    <div class="modal-body" id="m-body"></div>
-    <div class="modal-outcomes" id="m-outcomes"></div>
-    <div class="modal-footer">
-      <button class="btn-modal btn-modal-dl" id="m-dl">⬇ Download Challenge Sheet</button>
-      <button class="btn-modal btn-modal-cl" onclick="closeModal()">Close</button>
+    <div class="pub-body">
+      <p class="pub-intro">
+        This entire platform is a single HTML file. No backend needed. No databases.
+        That means you can host it anywhere that serves static files — and the best options are completely free.
+        Here's exactly where to go and how to do it.
+      </p>
+
+      <div class="pub-section-title">⚡ Instant Hosting (No Code Required)</div>
+      <div class="pub-grid">
+        <div class="pub-platform">
+          <div class="pp-flag">Easiest</div>
+          <div class="pp-name">Netlify Drop</div>
+          <a class="pp-url" href="https://app.netlify.com/drop" target="_blank">app.netlify.com/drop</a>
+          <p class="pp-desc">Drag and drop your HTML file into the browser. It's live in under 10 seconds. You get a free subdomain like <strong>makerpath.netlify.app</strong>. No account required to try — create one to keep it permanently.</p>
+          <div class="pp-tags">
+            <span class="pp-tag green">100% Free</span>
+            <span class="pp-tag blue">HTTPS included</span>
+            <span class="pp-tag">Custom domain support</span>
+          </div>
+        </div>
+        <div class="pub-platform">
+          <div class="pp-flag">Most Popular</div>
+          <div class="pp-name">GitHub Pages</div>
+          <a class="pp-url" href="https://pages.github.com" target="_blank">pages.github.com</a>
+          <p class="pp-desc">Create a free GitHub account. Make a repository named <strong>your-username.github.io</strong>. Upload the HTML file as <strong>index.html</strong>. Your site goes live at that URL automatically — no config needed.</p>
+          <div class="pp-tags">
+            <span class="pp-tag green">100% Free</span>
+            <span class="pp-tag blue">Version history</span>
+            <span class="pp-tag">Custom domain support</span>
+          </div>
+        </div>
+        <div class="pub-platform">
+          <div class="pp-name">Cloudflare Pages</div>
+          <a class="pp-url" href="https://pages.cloudflare.com" target="_blank">pages.cloudflare.com</a>
+          <p class="pp-desc">Upload directly or connect a GitHub repo. Cloudflare's global network means your site loads blazing fast for makers anywhere in the world. Free tier is extremely generous — unlimited sites.</p>
+          <div class="pp-tags">
+            <span class="pp-tag green">100% Free</span>
+            <span class="pp-tag blue">Global CDN</span>
+            <span class="pp-tag orange">Fastest option</span>
+          </div>
+        </div>
+        <div class="pub-platform">
+          <div class="pp-name">Vercel</div>
+          <a class="pp-url" href="https://vercel.com" target="_blank">vercel.com</a>
+          <p class="pp-desc">Drag-and-drop deploy or connect GitHub. Free tier gives you unlimited static sites. You get a clean URL like <strong>makerpath.vercel.app</strong> and can add a custom domain with one click.</p>
+          <div class="pp-tags">
+            <span class="pp-tag green">100% Free</span>
+            <span class="pp-tag blue">Analytics built-in</span>
+            <span class="pp-tag">Custom domain support</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub-section-title">📚 Community Platforms (Embedded Audience)</div>
+      <div class="pub-grid">
+        <div class="pub-platform">
+          <div class="pp-name">Instructables</div>
+          <a class="pp-url" href="https://www.instructables.com" target="_blank">instructables.com</a>
+          <p class="pp-desc">The world's largest maker community. Post each challenge as a project. Millions of makers already browse here. Great for discovery and sharing individual challenges as standalone guides.</p>
+          <div class="pp-tags">
+            <span class="pp-tag green">Free to publish</span>
+            <span class="pp-tag blue">Huge audience</span>
+            <span class="pp-tag">PDF export built-in</span>
+          </div>
+        </div>
+        <div class="pub-platform">
+          <div class="pp-name">Hackster.io</div>
+          <a class="pp-url" href="https://www.hackster.io" target="_blank">hackster.io</a>
+          <p class="pp-desc">Electronics and IoT-focused. Loved by the Arduino and Raspberry Pi community. Post project guides with component lists, steps, and media. Strong for Embedded Systems and Robotics challenges.</p>
+          <div class="pp-tags">
+            <span class="pp-tag green">Free to publish</span>
+            <span class="pp-tag orange">Hardware community</span>
+            <span class="pp-tag">Sponsor support</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub-section-title">🎓 Learning Platform Distribution</div>
+      <div class="pub-grid">
+        <div class="pub-platform">
+          <div class="pp-name">Google Sites</div>
+          <a class="pp-url" href="https://sites.google.com" target="_blank">sites.google.com</a>
+          <p class="pp-desc">If your MakerPath program runs inside a school or organisation using Google Workspace, Google Sites is the fastest way to embed this — completely free and accessible with any Google account.</p>
+          <div class="pp-tags">
+            <span class="pp-tag green">100% Free</span>
+            <span class="pp-tag blue">Google ecosystem</span>
+          </div>
+        </div>
+        <div class="pub-platform">
+          <div class="pp-name">Notion (Public Page)</div>
+          <a class="pp-url" href="https://notion.so" target="_blank">notion.so</a>
+          <p class="pp-desc">Embed your hosted HTML site inside a Notion page and publish it publicly. Notion pages can be indexed by Google. Works well as a landing hub that links out to the platform and explains the program.</p>
+          <div class="pp-tags">
+            <span class="pp-tag green">Free tier available</span>
+            <span class="pp-tag">Easy sharing</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub-tip">
+        <div class="tip-label">💡 Recommended Stack for MakerPath</div>
+        <p><strong>Host on Netlify Drop</strong> for instant setup → <strong>Post challenges on Hackster.io</strong> for discovery → <strong>Share the Netlify link</strong> with your maker community on WhatsApp, Discord, or your school intranet. Total cost: <strong>₹0 / $0</strong>. Setup time: <strong>under 10 minutes</strong>.</p>
+      </div>
+
+      <div class="pub-tip" style="border-left-color:var(--teal);background:rgba(0,194,168,.04);margin-top:12px;">
+        <div class="tip-label">🔧 How to Deploy Right Now</div>
+        <p>1. Save this page as <strong>index.html</strong> from your browser (File → Save As).<br>
+        2. Go to <strong>app.netlify.com/drop</strong>.<br>
+        3. Drag the file into the browser window.<br>
+        4. Copy the live URL and share it. Done.</p>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════
-//  DATA
-// ══════════════════════════════════════════
+// ══════════════════ DATA ══════════════════
 const TIERS = {
-  "1": { label:"T1 · EXPLORER", sub:"Zero Level · Fundamental Learning · 30–60 min micro-wins", cls:"t1", accent:"var(--yellow)", stepCls:"t1c" },
-  "2": { label:"T2 · SOLVER",   sub:"Structured Problem Solving · No guidebooks · Failure expected",  cls:"t2", accent:"var(--orange)", stepCls:"t2c" },
-  "3": { label:"T3 · ARCHITECT",sub:"Deep Tech · Creation · Mentor-led · Portfolio-grade output",     cls:"t3", accent:"var(--teal)",   stepCls:"t3c" },
+  "1":{ label:"T1 · EXPLORER", name:"Explorer Challenges", sub:"Zero Level · Fundamental Learning · 30–60 min micro-wins · 1–2 skills per challenge", cls:"t1" },
+  "2":{ label:"T2 · SOLVER",   name:"Solver Challenges",   sub:"Structured Problem Solving · No guidebooks · Failure documented · Time-boxed", cls:"t2" },
+  "3":{ label:"T3 · ARCHITECT",name:"Architect Challenges",sub:"Deep Tech · Mentor-led · Portfolio-grade output · Days to Weeks", cls:"t3" },
 };
 
-let challenges = [
-  // ── T1 · ELECTRONICS ──
-  { id:1, tier:"1", domain:"Electronics", time:"45 min",
+let data = [
+  // ─── T1 · ELECTRONICS ───
+  { id:1, tier:"1", domain:"Electronics", time:"45 min", num:"01",
     title:"The Material Bridge",
     mystery:"What things in the world let electric current pass through them?",
-    mission:"Your circuit has a gap! You are looking for a 'Bridge' that completes the path and makes the LED light up. Use your alligator clips to test every object on the table.",
+    coreIdea:"Understanding a Closed Loop (Circuit) — what stops or helps electricity move.",
+    mission:"Your circuit has a gap! You're looking for a 'Bridge' that completes the path and makes the LED light up. Use your alligator clips to test every object on the table and classify them.",
     steps:[
-      "Connect the battery holder to the LED, leaving two wire ends open with alligator clips.",
-      "Touch both clips to each mystery object on the table. Watch the LED.",
-      "LED glows = Bridge (Conductor). No glow = Blocker (Insulator).",
-      "Sort every object into two piles before time runs out."
+      "Assemble the battery holder (2×AA) with wires and an LED. Leave two wire ends open with alligator clips — this is your broken circuit.",
+      "Pick up the first mystery object. Touch both alligator clips to opposite sides of it.",
+      "Observe: does the LED light up? If yes → it's a Bridge (Conductor). If no → it's a Blocker (Insulator).",
+      "Work through every object on the table. Sort them into two groups. Note which objects surprised you."
     ],
-    loot:["2×AA Batteries","1 LED","Alligator Clips","Metal Key","Rubber Eraser","Coin","Spoon","Wood Block","Aluminium Foil","6B Pencil"],
-    success:"Sort all objects into Bridges (Conductors) and Blockers (Insulators). Bonus: explain why the pencil behaves unexpectedly.",
-    intuition:"Your phone charger has a metal tip (the bridge) wrapped in rubber (the blocker). The metal conducts current; the rubber keeps you safe.",
-    levels:["L1 · Bridge Hunt","L2 · The Light Controller","L3 · Secret Handshake"]
+    loot:["2×AA Batteries","Battery Holder","1 LED","Alligator Clips (×2)","Metal Key","Rubber Eraser","Coin","Metal Spoon","Wood Block","Aluminium Foil","6B Pencil"],
+    success:"Sort every object into the correct group — Bridges (Conductors) and Blockers (Insulators). Bonus: the pencil should surprise you. Can you explain why?",
+    intuition:"Your phone charger has a metal tip (the Bridge — it conducts electricity to your device) wrapped in rubber casing (the Blocker — it stops electricity from reaching your hand). Now you know exactly why.",
+    skills:["Identifying conductors vs insulators","Understanding closed circuits","Scientific observation and classification"],
+    vocab:["Conductor","Insulator","Closed Circuit","Open Circuit","Electric Current"],
+    levels:["L1 · The Bridge Hunt (This Challenge)","L2 · The Light Controller","L3 · The Secret Handshake"]
   },
-  { id:2, tier:"1", domain:"Electronics", time:"50 min",
+  { id:2, tier:"1", domain:"Electronics", time:"50 min", num:"02",
     title:"The Light Controller",
-    mystery:"How do we make a light glow dimly instead of just ON or OFF?",
-    mission:"Draw a thick 5-inch graphite line with your 6B pencil on paper. Clip the battery and LED across it, then slide one clip along the line — the resistance changes with distance.",
+    mystery:"How do we make a light glow dimly instead of just being ON or OFF?",
+    coreIdea:"Resistance — the concept of 'speed bumps' for electricity. More path = more resistance = less current.",
+    mission:"Instead of a wire, you'll use a hand-drawn graphite path as your resistor. Slide a clip along it and watch the LED brightness change in real-time — you're building a variable resistor.",
     steps:[
-      "Draw a thick, dark 5-inch line on paper with the 6B pencil.",
-      "Clip one alligator lead to the very start of the line.",
-      "Slide the second clip along the line — find the Hyper-Bright spot and mark it.",
-      "Find the Ghost-Glow (dim) spot. How far apart are the clips?",
-      "Slowly slide end-to-end — can you make the LED fade smoothly?"
+      "Draw a thick, dark 5-inch line on paper using the 6B pencil. Press hard — you need a dense graphite layer.",
+      "Use masking tape to attach one alligator clip firmly to the very start of the line.",
+      "Connect the battery and LED into the circuit. Clip the second alligator clip somewhere along the line.",
+      "Slide the second clip toward the first → find the 'Hyper-Bright' spot. Mark it with X.",
+      "Slide the second clip to the far end → find the 'Ghost-Glow' (barely visible) spot. Mark it with Y.",
+      "Now slowly drag the clip from Y back to X. Can you make the LED fade smoothly and continuously?"
     ],
-    loot:["9V Battery","1 LED","Alligator Clips","6B Pencil","Sheet of Paper"],
-    success:"Find the longest path on the graphite line that still keeps the LED alive. Demonstrate a smooth fade from bright → dim → off.",
-    intuition:"You just built a Potentiometer — the exact mechanism inside every volume knob and dimmer switch in your home.",
-    levels:["L1 · Graphite Resistor","L2 · Fade Control"]
+    loot:["9V Battery (or 3×AA)","1 LED","Alligator Clips (×2)","6B or 8B Pencil","A4 Sheet of Paper","Masking Tape","Ruler"],
+    success:"Find the longest graphite path that still keeps the LED alive (faintest glow). Demonstrate a smooth, continuous fade from maximum brightness to off — no jumps.",
+    intuition:"You just built a Potentiometer. This is exactly how the volume knob on a speaker works, how a dimmer switch controls your bedroom lights, and how a guitar's tone control shapes sound. A wiper slides along a resistive track — just like your alligator clip.",
+    skills:["Understanding electrical resistance","Building a variable resistor","Connecting resistance to brightness (Ohm's Law intuition)"],
+    vocab:["Resistance","Potentiometer","Variable Resistor","Ohm's Law","Current","Graphite"],
+    levels:["L1 · Fixed Resistors","L2 · Graphite Variable Resistor (This Challenge)","L3 · Commercial Potentiometers"]
   },
-  { id:3, tier:"1", domain:"Electronics", time:"60 min",
+  { id:3, tier:"1", domain:"Electronics", time:"60 min", num:"03",
     title:"The Secret Handshake",
     mystery:"How do we make a machine that requires two YES answers to work?",
-    mission:"Wire a buzzer to two push-buttons and explore AND logic (series) vs OR logic (parallel). Two configurations — two completely different behaviours.",
+    coreIdea:"AND vs OR Logic using Series (in a row) and Parallel (side-by-side) circuits — the physical foundation of digital logic.",
+    mission:"Wire a buzzer to two push-buttons and discover how the arrangement of components completely changes what triggers them. Two configurations. Two completely different behaviours.",
     steps:[
-      "Part A — The Vault (AND): Wire Button A and B in a chain (series). Test: does pressing only one button trigger the buzzer?",
-      "Confirm: buzzer sounds ONLY when both are pressed simultaneously.",
-      "Part B — The Doorbell (OR): Rewire buttons side-by-side (parallel). Now either button alone completes its own path.",
-      "Demonstrate both configs to a partner and explain the wiring difference."
+      "Part A — The Vault (AND Logic): Wire Button A and Button B in a chain (series). Current must pass through A, then B, then reach the buzzer.",
+      "Test: Press only A. Does the buzzer sound? Press only B. Does it sound? Press both simultaneously — now it should trigger.",
+      "Draw your Part A wiring diagram. Label it AND Gate.",
+      "Part B — The Doorbell (OR Logic): Rewire so Button A and Button B each have their own separate path to the buzzer (parallel).",
+      "Test: Press only A — buzzer sounds. Press only B — buzzer sounds. Either path completes the circuit.",
+      "Draw your Part B wiring diagram. Label it OR Gate. Present both to a partner and explain the difference."
     ],
-    loot:["Battery Pack","1 Buzzer","2 Push-buttons","Wires"],
-    success:"Demonstrate AND (Part A) and OR (Part B) successfully. Teach the wiring difference to someone else.",
-    intuition:"AND = key AND password both needed. OR = key OR fingerprint either works. Every security system uses this exact logic.",
-    levels:["Part A · AND Logic (Vault)","Part B · OR Logic (Doorbell)"]
+    loot:["Battery Pack","1 Buzzer (or small fan)","Push-button A","Push-button B","Connecting Wires","Breadboard (optional)"],
+    success:"Demonstrate both Part A (AND) and Part B (OR) correctly. Explain the wiring difference to someone else without looking at your notes.",
+    intuition:"AND logic = a bank vault that needs key AND code AND biometric — all three, or nothing opens. OR logic = a building alarm that triggers if sensor A OR sensor B OR any window is broken — any one is enough. Every computer processor runs on millions of these logic gates.",
+    skills:["Series vs parallel circuit configuration","AND and OR logic implementation","Circuit documentation (wiring diagrams)"],
+    vocab:["Series Circuit","Parallel Circuit","AND Gate","OR Gate","Logic","Boolean"],
+    levels:["Part A · AND Logic (The Vault)","Part B · OR Logic (The Doorbell)","Extension · NAND & NOR Gates"]
   },
-  // ── T1 · AI ──
-  { id:4, tier:"1", domain:"AI", time:"45 min",
+
+  // ─── T1 · AI ───
+  { id:4, tier:"1", domain:"AI", time:"45 min", num:"04",
     title:"The Pattern Guesser",
     mystery:"How does a machine learn to recognise something it has never seen before?",
-    mission:"Use a visual card set to simulate supervised learning. One person 'trains' a partner (the AI) by showing labelled examples. The AI must then classify unseen cards using only learned patterns.",
+    coreIdea:"Supervised learning — training on labelled examples to generalise to new data.",
+    mission:"Use a visual card set to simulate machine learning. One person acts as the 'trainer', another as the 'AI model'. The AI sees labelled training examples, then must classify completely new cards — no peeking.",
     steps:[
-      "Shuffle cards. Split into Training pile (labelled) and Test pile (unlabelled).",
-      "Show the AI partner only training cards with their labels. No peeking at test cards.",
-      "Present test cards one by one. The AI guesses — no help allowed.",
-      "Try again with half the training data. Which categories break first?"
+      "Shuffle all cards. Separate into a Training Pile (labelled, face up) and a Test Pile (unlabelled, face down).",
+      "The trainer shows the AI partner the training cards one by one, with labels. AI cannot take notes.",
+      "Once all training cards are seen, the trainer presents test cards. AI guesses the label for each.",
+      "Score: how many of 10 test cards were classified correctly? Record the result.",
+      "Reduce the training set by half. Repeat. Does accuracy drop? For which categories most?",
+      "Discuss: which examples were most useful for learning? Why?"
     ],
-    loot:["Visual Pattern Card Set","Label Stickers","Score Sheet","Timer"],
-    success:"AI partner correctly classifies at least 7 of 10 unseen cards. Discuss: which examples were hardest to learn from?",
-    intuition:"This is exactly what image recognition AI does — it sees thousands of labelled photos, then guesses on new ones. Your partner was the neural network.",
-    levels:["L1 · Binary Classifier","L2 · Multi-class Classifier"]
+    loot:["Visual Pattern Card Set (40 cards)","Label Stickers","Score Sheet","Timer"],
+    success:"AI partner correctly classifies at least 7 of 10 unseen test cards. Reflection: which categories were hardest? What would have made training more effective?",
+    intuition:"Google Photos recognising your face, spam filters detecting junk mail, and cancer detection AI diagnosing X-rays — they all start the same way: thousands of labelled examples, a learning phase, then classification of new unseen data. Your partner was the neural network.",
+    skills:["Understanding supervised learning","Training vs test data","Generalisation and overfitting intuition"],
+    vocab:["Training Data","Test Data","Label","Classification","Supervised Learning","Generalisation"],
+    levels:["L1 · Binary Classifier (2 categories)","L2 · Multi-class Classifier (4+ categories)","L3 · Few-shot Learning (5 examples only)"]
   },
-  // ── T1 · Robotics ──
-  { id:5, tier:"1", domain:"Robotics", time:"45 min",
+
+  // ─── T1 · Robotics ───
+  { id:5, tier:"1", domain:"Robotics", time:"45 min", num:"05",
     title:"The Balancing Act",
     mystery:"How does a robot know it's falling before it actually falls?",
-    mission:"Build a cardboard pendulum with a marble sensor track. The goal is to detect a 15° lean before the structure fully tips — sense first, react second.",
+    coreIdea:"Sensing and feedback — detecting a condition early enough to respond before it becomes a problem.",
+    mission:"Build a physical tilt detection system from cardboard and a marble. The goal: reliably detect a 15° lean before the structure fully tips. No electronics needed — just clever mechanical design.",
     steps:[
-      "Build the pendulum stand from cardboard and tape.",
-      "Attach a marble on a curved track as your tilt sensor.",
-      "Calibrate: mark where the marble rolls before the structure tips.",
-      "Measure: at what angle does your sensor trigger? Try to reach 15°."
+      "Build a vertical cardboard stand at least 30cm tall. It should be able to tip over if pushed sideways.",
+      "Design and attach a marble-on-track sensor: a curved channel that lets the marble roll when tilted.",
+      "Calibrate: use the protractor to measure at what angle the marble starts to move.",
+      "Challenge: redesign the track so the marble triggers at exactly 15° — not 5°, not 30°.",
+      "Document your calibration angle. How repeatable is your sensor? Test it 5 times."
     ],
-    loot:["Cardboard Tubes","Marble","Masking Tape","Ruler","Angle Protractor","Marker"],
-    success:"Sensor reliably detects a 15° lean before the structure falls. Document your calibration method.",
-    intuition:"Gyroscopes and accelerometers inside drones and self-balancing robots work on this principle — sense first, react second, never catch up.",
-    levels:["L1 · Tilt Detection","L2 · Feedback Response"]
+    loot:["Cardboard Sheets","Marble","Masking Tape","Ruler","Angle Protractor","Markers","Scissors"],
+    success:"Sensor reliably detects a 15° lean (±5°) before the structure falls. Achieves consistent results across 5 repetitions. Design sketched and annotated.",
+    intuition:"The IMU (Inertial Measurement Unit) sensor inside every drone, self-balancing robot, and phone screen-rotation feature does exactly this — it detects tilt early, then triggers a corrective response. Sense first. React second. Never catch up.",
+    skills:["Mechanical sensor design","Calibration and measurement","Feedback systems intuition"],
+    vocab:["Sensor","Tilt","Feedback","Calibration","IMU","Threshold"],
+    levels:["L1 · Mechanical Tilt Sensor (This Challenge)","L2 · Electronic Tilt Switch","L3 · IMU-based Orientation Sensing"]
   },
-  // ── T1 · IoT ──
-  { id:6, tier:"1", domain:"IoT", time:"30 min",
+
+  // ─── T1 · IoT ───
+  { id:6, tier:"1", domain:"IoT", time:"30 min", num:"06",
     title:"The Invisible Messenger",
     mystery:"How do devices talk to each other without touching?",
-    mission:"Use an IR LED and sensor pair to send a binary-encoded message (light flashes = 1, pause = 0) across the room. Encode your name in binary and transmit it to a partner.",
+    coreIdea:"Binary encoding and wireless data transmission using infrared light.",
+    mission:"Encode a word in binary (8-bit ASCII). Transmit it across the room using IR LED flashes. Your partner receives and decodes it. No WiFi. No Bluetooth. Just light and logic.",
     steps:[
-      "Learn to convert letters to 8-bit binary using the reference chart.",
-      "Use an IR LED to flash your binary sequence: quick flash = 1, short pause = 0.",
-      "Your partner uses the IR sensor to detect each bit and writes it down.",
-      "Swap transmitter and receiver. Decode their name."
+      "Learn to convert letters to 8-bit binary using the ASCII reference chart. Encode your first name.",
+      "Establish the protocol: a quick flash = 1, a 1-second pause = 0. 3-second gap between letters.",
+      "Transmitter: hold the IR LED toward the receiver. Send each bit carefully according to your binary sequence.",
+      "Receiver: use the IR sensor module connected to an LED indicator. Write down each bit as it arrives.",
+      "Decode the received binary back into letters using the reference chart. Did you get the right word?",
+      "Swap roles. Try to transmit a mystery word — see if the other can decode it without knowing in advance."
     ],
-    loot:["2× IR LED","2× IR Sensor Module","Battery","Wire","Binary Reference Chart"],
-    success:"Successfully transmit and decode a 3-letter word using IR binary signals.",
-    intuition:"TV remotes, smart home devices, and early WiFi all use modulated light or radio waves to send binary data. You just did it by hand.",
-    levels:["L1 · Binary Basics","L2 · IR Transmission"]
+    loot:["2× IR LED","2× IR Receiver Module","2× AA Batteries","Connecting Wire","Binary ASCII Reference Chart","Pen and Paper"],
+    success:"Successfully transmit and decode a 3-letter word using IR binary signals. Achieve zero errors on the second attempt (clean transmission technique).",
+    intuition:"TV remotes, smart home devices, night-vision cameras, and the original IrDA (infrared data) standard in early laptops all used modulated infrared light to send binary data. You just implemented the same principle manually.",
+    skills:["Binary encoding (ASCII)","Data transmission protocols","IR communication basics"],
+    vocab:["Binary","ASCII","IR (Infrared)","Protocol","Bit","Byte","Encoding","Decoding"],
+    levels:["L1 · Manual IR Transmission (This Challenge)","L2 · Arduino-based IR Transmitter","L3 · Custom IR Protocol Design"]
   },
 
-  // ── T2 ──
-  { id:7, tier:"2", domain:"Robotics", time:"3 hrs",
+  // ─── T2 ───
+  { id:7, tier:"2", domain:"Robotics", time:"3 hrs", num:"07",
     title:"The Maze Solver",
     mystery:"Can you build a vehicle that finds its own way out of a maze — without a map?",
-    mission:"Build a wheeled robot using the provided components. No step-by-step guide. Design, prototype, fail, and iterate until it navigates a fixed maze without human input. Document every failure.",
+    coreIdea:"Autonomous navigation using reactive sensing — no pre-programmed map, just real-time sensor decisions.",
+    mission:"Build a wheeled robot that navigates a physical maze without human intervention. No step-by-step guide. You define the sensing strategy, design the algorithm, build, test, and iterate. Every failure must be documented.",
     steps:[
-      "Define your sensing strategy: ultrasonic, IR, or touch-based. Justify it in writing.",
-      "Sketch your wiring diagram and decision algorithm on paper before touching components.",
-      "Build prototype 1. Run the maze. Log everything that fails with root cause.",
-      "Iterate at least twice. Each iteration requires a written change log."
+      "Define your navigation strategy. Options: wall-following (left-hand rule), ultrasonic sweep, IR edge detection. Justify your choice in writing — why this approach for this maze?",
+      "Sketch your full wiring diagram and decision flowchart on paper before touching any components.",
+      "Build Prototype 1. Run it through the maze. Time it. Log every single failure: what happened, where, and why.",
+      "Analyse failures. Redesign one aspect. Build Prototype 2. Run again. Compare results.",
+      "Iterate at least 3 times. Each iteration requires: a written change log, test time, and failure count.",
+      "Final run: best of 3 attempts. Submit your iteration log alongside the robot."
     ],
-    loot:["Arduino Uno","2× DC Motors","Motor Driver","Ultrasonic Sensor","9V Battery","Chassis Kit","Jumper Wires"],
-    success:"Robot completes the maze in under 3 minutes without human intervention. Submit: failure log with 3 documented iterations.",
-    intuition:"Autonomous navigation is the foundation of every self-driving car, warehouse robot, and drone delivery system on the planet.",
-    levels:["Phase 1 · Design","Phase 2 · Build","Phase 3 · Iterate","Phase 4 · Document"]
+    loot:["Arduino Uno","2× DC Motors","L298N Motor Driver","HC-SR04 Ultrasonic Sensor","9V Battery + Clip","2-Wheel Chassis Kit","Jumper Wires","Cardboard maze structure"],
+    success:"Robot completes the maze in under 3 minutes without human intervention. Submit: 3-iteration failure log with root cause analysis, wiring diagram, and algorithm flowchart.",
+    intuition:"Every self-driving car, Amazon warehouse robot, and hospital delivery bot started with exactly this challenge: how do I move through unknown space using only what my sensors tell me right now? You're building the same core loop.",
+    skills:["Autonomous navigation algorithm design","Iterative prototyping","Failure documentation and root cause analysis","Motor control and sensor integration"],
+    vocab:["Autonomous","Navigation","Sensor Fusion","Reactive Control","Iteration","Failure Mode"],
+    reflection:"You must articulate in writing: (1) What strategy did you choose and why? (2) What was your biggest unexpected failure? (3) If you had 1 more hour, what would you change?",
+    levels:["Phase 1 · Strategy & Design","Phase 2 · Build Prototype 1","Phase 3 · Iterate (×3 minimum)","Phase 4 · Document & Present"]
   },
-  { id:8, tier:"2", domain:"Embedded Systems", time:"2.5 hrs",
+  { id:8, tier:"2", domain:"Embedded Systems", time:"2.5 hrs", num:"08",
     title:"The Weather Station",
     mystery:"How do you turn raw sensor data into a dashboard a human can actually use?",
-    mission:"Wire a temperature/humidity sensor to a microcontroller. Display readings live. Add a threshold alert that triggers an LED when temperature exceeds your chosen limit. No pin diagrams provided — find them yourself.",
+    coreIdea:"Sensor integration, data formatting, threshold logic, and human-readable display design.",
+    mission:"Wire a temperature/humidity sensor to a microcontroller. Read data. Display it live. Add a threshold alert. No pin diagrams provided — you research those yourself. Design the display layout from scratch.",
     steps:[
-      "Connect DHT11 to Arduino — research the correct pins yourself.",
-      "Write code to read and print temperature + humidity to the serial monitor.",
-      "Add an LED that activates when temperature exceeds your defined threshold.",
-      "Design a live display on a 16×2 LCD with meaningful labels and units."
+      "Research the DHT11 sensor datasheet. Find the correct data pin, power pin, and required pull-up resistor. Wire it yourself.",
+      "Write code to read temperature and humidity. Print raw values to the serial monitor. Confirm accuracy.",
+      "Define a meaningful threshold (e.g. temp > 35°C = alert). Add an LED that activates when exceeded.",
+      "Design a 16×2 LCD display layout. What labels will you use? What units? How will you handle long numbers?",
+      "Implement your LCD design. Test edge cases: what happens when temp is exactly at threshold? When sensor disconnects?",
+      "Stress test: breathe on the sensor, hold an ice cube near it. Does your display update smoothly?"
     ],
-    loot:["Arduino Uno","DHT11 Sensor","16×2 LCD","1 LED","Resistors","Breadboard","Jumper Wires"],
-    success:"Working live dashboard with threshold alert. Reflection (written): what was your hardest bug? How did you isolate it?",
-    intuition:"This is the skeleton of every industrial monitoring system — server rooms, greenhouses, ICU equipment. Same sensors, same alerts.",
-    levels:["Phase 1 · Sensor Reading","Phase 2 · Alert Logic","Phase 3 · Display Design"]
+    loot:["Arduino Uno","DHT11 Temp/Humidity Sensor","16×2 I2C LCD","1 Red LED","10kΩ Resistor","220Ω Resistor","Breadboard","Jumper Wires","USB Cable"],
+    success:"Working live dashboard with smooth updates and threshold alert LED. Written reflection: what was your hardest debugging moment? How did you isolate the bug?",
+    intuition:"This is the exact architecture inside every industrial monitoring system — data centre cooling alerts, greenhouse climate control, pharmaceutical cold chain monitoring, and ICU patient dashboards. Same sensors. Same threshold logic. Same display design decisions.",
+    skills:["Sensor wiring from a datasheet","Threshold logic implementation","LCD display design","Debugging embedded systems"],
+    vocab:["DHT11","Datasheet","Threshold","LCD","I2C","Polling","Real-time Display"],
+    reflection:"Mandatory written reflection: What did you assume would work that didn't? How did you debug the sensor connection? Would you redesign the LCD layout — if so, how?",
+    levels:["Phase 1 · Sensor Wiring & Reading","Phase 2 · Threshold Alert Logic","Phase 3 · LCD Display Design","Phase 4 · Edge Case Testing"]
   },
-  { id:9, tier:"2", domain:"3D Printing", time:"4 hrs",
+  { id:9, tier:"2", domain:"3D Printing", time:"4 hrs", num:"09",
     title:"The Friction Fit Challenge",
-    mystery:"Can you design two parts that snap together perfectly — no glue, no screws?",
-    mission:"Design a two-part enclosure that uses only press-fit tolerances to stay shut. It must survive a 1-metre drop test. Print twice — learn from what your first print gets wrong.",
+    mystery:"Can you design two parts that snap together perfectly — no glue, no screws, no fasteners of any kind?",
+    coreIdea:"Press-fit tolerances — understanding the difference between designed dimensions and printed dimensions.",
+    mission:"Design a two-part enclosure that holds shut using only press-fit (friction) joint design. It must survive a 1-metre drop test. Print twice. Learn from your first print's actual fit vs designed fit.",
     steps:[
-      "Sketch the joint geometry by hand. Estimate your printer's tolerance offset from spec sheets.",
-      "Model Part A and Part B in any CAD software of your choice.",
-      "Print v1. Test fit. Measure actual gap with calipers. Adjust your model.",
-      "Print v2. Drop test from 1 metre. Document your tolerance delta between versions."
+      "Sketch the joint geometry by hand. Research your printer's typical dimensional accuracy (usually ±0.2–0.3mm). Factor this into your design.",
+      "Model Part A (body) and Part B (lid) in your CAD tool. Apply your calculated tolerance offset to the mating surfaces.",
+      "Print Version 1. Let it cool fully before testing. Measure the actual gap with digital calipers. Record the delta vs your designed dimension.",
+      "Adjust your CAD model by the measured delta. Print Version 2.",
+      "Drop test V2 from exactly 1 metre onto a hard floor. Does it stay shut? If not, adjust and print V3.",
+      "Document: your designed tolerance, printed result, delta, and how many prints it took to achieve a good fit."
     ],
-    loot:["3D Printer Access","PLA Filament","Digital Calipers","CAD Software"],
-    success:"Two-piece enclosure survives a 1-metre drop with no fasteners. Document: tolerance delta between v1 and v2, and your calibration method.",
-    intuition:"Snap-fit tolerances are what make LEGO bricks work, phone cases click in, and medical device housings seal reliably — all engineered to ±0.1mm.",
-    levels:["Phase 1 · CAD Design","Phase 2 · First Print","Phase 3 · Tolerance Tuning","Phase 4 · Drop Test"]
+    loot:["3D Printer Access","PLA Filament (any colour)","Digital Calipers","CAD Software (Fusion 360 / FreeCAD / TinkerCAD)","Drop test surface"],
+    success:"Two-part enclosure that survives a 1-metre drop with no fasteners. Document: initial tolerance assumption, measured delta after V1, final tolerance value that worked.",
+    intuition:"The snap-fit tolerances on a LEGO brick are engineered to ±0.01mm. Phone case clips, medical device housings, injection-moulded electronics enclosures — all rely on this same principle. The difference between 'loose' and 'locked' is often 0.2mm.",
+    skills:["Parametric CAD modelling","Tolerance engineering","Iterative design from measurement","Failure analysis from physical testing"],
+    vocab:["Tolerance","Press-fit","Clearance","Interference Fit","Callout","Iteration","Calipers","Datum"],
+    reflection:"Mandatory: What was your initial tolerance assumption? How far off was it? What surprised you about the relationship between designed and printed dimensions?",
+    levels:["Phase 1 · CAD Design (V1)","Phase 2 · Print & Measure","Phase 3 · Tolerance Adjustment (V2)","Phase 4 · Drop Test & Document"]
   },
-  { id:10, tier:"2", domain:"AI", time:"3 hrs",
+  { id:10, tier:"2", domain:"AI", time:"3 hrs", num:"10",
     title:"The Bias Audit",
-    mystery:"How do you know if the AI you built is actually fair?",
-    mission:"Train a simple text classifier (spam vs not spam) on a provided dataset. Then deliberately test it with edge cases designed to reveal hidden bias. Document every failure and propose a real fix.",
+    mystery:"How do you know if the AI you built is actually fair — and what does 'fair' even mean?",
+    coreIdea:"Model evaluation, adversarial testing, and understanding how bias enters AI systems at the data level.",
+    mission:"Train a text classifier on a provided dataset. Then deliberately attack it with edge cases designed to reveal hidden bias. Document every failure. Write a Bias Report that a real product team could act on.",
     steps:[
-      "Load the CSV dataset. Train a Naive Bayes or logistic regression classifier.",
-      "Evaluate on the test set. Report precision and recall separately — not just accuracy.",
-      "Run 20 hand-crafted adversarial examples. How many does the model fail on?",
-      "Write a 1-page Bias Report: 3 failure modes, root cause analysis, 1 proposed mitigation each."
+      "Load the CSV dataset. Examine it first: how many examples per class? Any obvious imbalances? Document your observations before training.",
+      "Train a Naive Bayes or logistic regression classifier. Evaluate on the test set — report precision and recall separately for each class (not just overall accuracy).",
+      "Design 20 adversarial examples: inputs that should be easy to classify but might expose bias (e.g. examples from underrepresented groups, edge-case phrasing, cultural references).",
+      "Run your adversarial set. Record each failure. For each failure: what was the input, what was predicted, what was correct?",
+      "Identify patterns in the failures. Is bias concentrated in one class? One type of language? One demographic?",
+      "Write your Bias Report (1–2 pages): 3 failure modes, root cause for each, 1 concrete mitigation per failure."
     ],
-    loot:["Laptop","Python + scikit-learn","Dataset CSV","Adversarial Test Cases (provided)"],
-    success:"Completed Bias Report with 3 documented failure modes, root-cause analysis, and at least 1 concrete mitigation proposed per failure.",
-    intuition:"Every AI system deployed at scale has a bias audit requirement. This is what that process actually looks like — before a product ships.",
-    levels:["Phase 1 · Train Model","Phase 2 · Evaluate","Phase 3 · Adversarial Testing","Phase 4 · Bias Report"]
+    loot:["Laptop with Python","scikit-learn library","Pandas","Dataset CSV (provided)","Adversarial Examples template (provided)"],
+    success:"Completed Bias Report with 3 documented failure modes, root-cause analysis, and at least 1 concrete mitigation proposed per failure. Presented verbally to a peer.",
+    intuition:"Amazon's hiring AI downgraded women's CVs. Facial recognition systems misidentify darker skin tones. Medical AI performs worse on underrepresented groups. Every one of these failures would have shown up in a proper bias audit — before deployment. You just learned how to run one.",
+    skills:["Model training and evaluation","Precision/recall analysis","Adversarial testing design","Bias identification and documentation"],
+    vocab:["Precision","Recall","False Positive","False Negative","Adversarial Example","Bias","Fairness","Mitigation"],
+    reflection:"Mandatory: Where did the bias come from — model or data? What would you need to collect to fix the worst failure mode? What does 'fair' mean in the context of your classifier?",
+    levels:["Phase 1 · Data Inspection & Training","Phase 2 · Evaluation (Precision/Recall)","Phase 3 · Adversarial Testing","Phase 4 · Bias Report"]
   },
 
-  // ── T3 ──
-  { id:11, tier:"3", domain:"Robotics", time:"2–3 weeks",
+  // ─── T3 ───
+  { id:11, tier:"3", domain:"Robotics", time:"2–3 weeks", num:"11",
     title:"The Autonomous Harvester",
     mystery:"Can you build a robot that identifies, navigates to, and retrieves target objects — without a human in the loop?",
-    mission:"Design and deploy a robotic arm + mobile base that uses computer vision to identify 'ripe' coloured objects and retrieve them from a controlled arena. Mentor reviews at 3 checkpoints.",
+    coreIdea:"End-to-end autonomous robotic system: perception → decision → action → feedback loop.",
+    mission:"Design and deploy a robotic arm + mobile base that uses computer vision to identify 'ripe' coloured targets in a controlled arena and retrieve them autonomously. Three mentor checkpoints structure your progress.",
     steps:[
-      "Week 1: Define system architecture — sensing, actuation, and decision layers. Mentor checkpoint 1.",
-      "Week 1–2: Build and test each subsystem independently. Vision pipeline first.",
-      "Week 2: Full system integration. Log every failure with root cause and fix.",
-      "Week 3: Field test in simulated arena. Optimise for speed and accuracy. Produce portfolio package."
+      "Week 1 — Architecture: Define your system in layers: Perception (camera + CV), Decision (Python logic), Actuation (motors + arm). Write a 1-page architecture document. Mentor review at end of Week 1.",
+      "Week 1–2 — Subsystem Build: Build and test each subsystem independently. Vision pipeline first: can you reliably detect target colour in varying lighting? Log every test with results.",
+      "Week 2 — Integration: Connect all subsystems. First full run. Log every failure with root cause. Expect at least 10 failure modes. Each must have a documented fix attempt.",
+      "Week 3 — Field Test: Run in the simulated arena. Optimise for: detection accuracy, navigation speed, arm precision. Minimum 10 timed runs documented.",
+      "Week 3 — Portfolio Package: Architecture doc (final version), test log, 5-minute demo video, lessons-learned document."
     ],
-    loot:["Raspberry Pi 4","Camera Module","Servo Arm Kit","Chassis","OpenCV","Python","Mentor Access"],
-    success:"Robot autonomously retrieves 8 of 10 targets in under 5 minutes. Deliverables: architecture doc, test log, 5-min demo video.",
-    intuition:"Agricultural robotics is a $12B market. The same pipeline powers surgical robotics, warehouse fulfilment, and deep-sea exploration vehicles.",
-    levels:["Checkpoint 1 · Architecture","Checkpoint 2 · Integration","Checkpoint 3 · Field Test","Final · Portfolio Demo"]
+    loot:["Raspberry Pi 4 (4GB)","Raspberry Pi Camera Module v2","3× Servo Motors + MG996R Arm Kit","2× DC Motors + L298N","Chassis + Wheels","12V Battery Pack","OpenCV (Python)","Mentor Access (3 sessions)"],
+    success:"Robot autonomously retrieves 8 of 10 targets in under 5 minutes in the standardised test arena. Portfolio package submitted: architecture doc, 10-run test log, demo video.",
+    intuition:"Agricultural robotics (strawberry pickers, apple harvesters) is a $12B market solving a real labour shortage. The same perception-decision-actuation pipeline powers surgical robotics (da Vinci system), Amazon Kiva warehouse robots, and deep-sea ROVs.",
+    skills:["Computer vision pipeline design","Multi-subsystem integration","Robotic arm kinematics basics","Systematic testing and documentation","Portfolio presentation"],
+    vocab:["Perception","Actuation","Computer Vision","OpenCV","Kinematics","End-to-End System","TRL (Technology Readiness Level)"],
+    mentor:"Mentors act as design reviewers (not instructors): they challenge your architecture assumptions, ask 'what happens if X fails?', and push you to justify every design decision. They do not give answers.",
+    levels:["Checkpoint 1 · Architecture Review (Week 1)","Checkpoint 2 · Integration (Week 2)","Checkpoint 3 · Field Test (Week 3)","Final · Portfolio Submission"]
   },
-  { id:12, tier:"3", domain:"AI", time:"3–4 weeks",
+  { id:12, tier:"3", domain:"AI", time:"3–4 weeks", num:"12",
     title:"The Edge Intelligence System",
-    mystery:"Can you run a real-time AI model on a device with no internet — and make it genuinely useful?",
-    mission:"Deploy a compact neural network on a microcontroller (ESP32-CAM or Pico) that performs a real-world classification task entirely offline. You collect your own dataset. Mentor provides the domain at kickoff.",
+    mystery:"Can you run a real-time AI model on a device with no internet — and make it genuinely useful to someone?",
+    coreIdea:"TinyML — deploying quantised neural networks on microcontrollers for on-device inference with no cloud dependency.",
+    mission:"Deploy a compact neural network on an ESP32-CAM or Raspberry Pi Pico W that performs a real-world classification task entirely offline. You collect your own dataset. You design the label schema. Mentor provides the domain at kickoff.",
     steps:[
-      "Week 1: Research and justify your model architecture in writing. Tradeoff analysis required.",
-      "Weeks 1–2: Collect and label your own dataset. Minimum 500 images using Label Studio.",
-      "Weeks 2–3: Train, quantise, and deploy. Measure accuracy vs latency at each step.",
-      "Week 4: Build the end-to-end pipeline. Present live demo to mentor panel."
+      "Week 1 — Architecture: Research model options (MobileNetV2, EfficientNet-Lite, custom CNN). Write a 1-page architecture justification — what tradeoffs did you accept and why? Mentor review.",
+      "Weeks 1–2 — Data Collection: Use Label Studio to collect and label ≥500 images for your classification task. Document your labelling guidelines. Ensure class balance.",
+      "Week 2 — Training & Quantisation: Train your model. Measure accuracy at full precision. Quantise to INT8. Measure accuracy loss post-quantisation. Document the tradeoff.",
+      "Week 3 — On-Device Deployment: Flash the quantised model. Measure on-device inference speed (FPS) and power draw. Optimise until you hit >5fps.",
+      "Week 4 — End-to-End Pipeline: Build a complete pipeline: camera → inference → output (LED, display, or serial). Live demo to mentor panel."
     ],
-    loot:["ESP32-CAM or Raspberry Pi Pico","TensorFlow Lite","Python","USB Camera","Label Studio"],
-    success:"Deployed model runs at >5fps on-device with >85% accuracy. Deliverables: dataset card, model card, live on-device demo.",
-    intuition:"This is TinyML — the technology inside smart doorbells, medical wearables, and agricultural sensors in areas with zero connectivity.",
-    levels:["Week 1 · Architecture + Data Strategy","Week 2 · Dataset + Training","Week 3 · Deployment","Week 4 · Demo + Portfolio"]
+    loot:["ESP32-CAM or Raspberry Pi Pico W","TensorFlow Lite for Microcontrollers","Python + TensorFlow (laptop)","Label Studio (open source)","USB Camera","OLED Display (optional)","Mentor Access"],
+    success:"Deployed model achieves >85% accuracy at >5fps entirely on-device with no internet. Deliverables: dataset card, model card (architecture, accuracy, latency), live on-device demo.",
+    intuition:"TinyML is the technology inside: Cochlear implant sound classifiers, wildfire detection sensors in remote forests, equipment failure prediction in factories, and cow health monitors in rural India — all running on devices smaller than your palm with no cloud connection.",
+    skills:["Neural architecture selection and justification","Dataset collection and labelling","Model quantisation","On-device deployment and benchmarking","Technical documentation (dataset card, model card)"],
+    vocab:["TinyML","Quantisation","INT8","Inference","Latency","Throughput","Model Card","Dataset Card","FPS"],
+    mentor:"Mentors challenge you on: Why this architecture? What breaks at the edge case? How would you verify the model isn't just memorising? What's the real-world failure cost?",
+    levels:["Week 1 · Architecture + Justification","Week 2 · Data Collection & Labelling","Week 3 · Training & Deployment","Week 4 · Live Demo + Portfolio"]
   },
-  { id:13, tier:"3", domain:"Wireless Comms", time:"2 weeks",
+  { id:13, tier:"3", domain:"Wireless Comms", time:"2 weeks", num:"13",
     title:"The Mesh Network",
     mystery:"Can you build a communication network that heals itself when a node goes down?",
-    mission:"Design and deploy a 4-node wireless mesh network using LoRa modules. Messages must automatically re-route around a failed node. Document the protocol design, failure tests, and outdoor range maps.",
+    coreIdea:"Self-healing mesh networking — routing algorithms that adapt to topology changes in real-time.",
+    mission:"Design and deploy a 4-node wireless mesh network using LoRa modules. Messages must automatically re-route around a failed node without human intervention. Document: protocol design, failure tests, outdoor range maps.",
     steps:[
-      "Week 1: Design your routing protocol. Define packet structure. Mentor design review.",
-      "Week 1: Flash firmware to all 4 nodes. Establish baseline point-to-point communication.",
-      "Week 2: Simulate node failures one by one. Does your routing adapt? Measure packet loss.",
-      "Week 2: Outdoor range test. Plot a coverage map. Write up findings."
+      "Week 1, Day 1–2: Design your routing protocol on paper. Define: packet structure (header fields, payload, checksum), neighbour discovery method, and failure detection mechanism. Mentor design review.",
+      "Week 1, Day 3–4: Flash firmware to all 4 nodes. Establish baseline point-to-point communication. Verify signal quality (RSSI) between all node pairs. Map the network graph.",
+      "Week 1, Day 5: Full mesh test. Verify messages route through intermediate nodes (A → B → D, not just A → D direct).",
+      "Week 2, Day 1–2: Failure simulation. Power down Node B. Does traffic re-route through C? Measure re-route time. How long before the network detects the failure?",
+      "Week 2, Day 3: Outdoor range test. Deploy nodes at increasing distances. Measure packet success rate at each distance. Plot a coverage map.",
+      "Week 2, Day 4–5: Write up findings. Produce: protocol document, packet loss data table, outdoor range map, lessons-learned."
     ],
-    loot:["4× LoRa SX1278 Modules","4× Arduino","Battery Packs","Antennas","Weatherproof Enclosures"],
-    success:"Network routes messages with 1 node down. Deliverables: routing protocol doc, packet loss data, outdoor range map.",
-    intuition:"This is how disaster-response networks, military communications, and satellite constellations maintain resilience — self-healing mesh with no single point of failure.",
-    levels:["Checkpoint 1 · Protocol Design","Checkpoint 2 · Node Deployment","Checkpoint 3 · Failure Testing","Final · Range Report"]
+    loot:["4× LoRa SX1278 Module (433MHz)","4× Arduino Uno","4× 18650 Battery + Holder","4× LoRa Antennas","Weatherproof project boxes","SMA antenna connectors","Laptop for serial monitoring"],
+    success:"Network routes messages successfully with 1 node powered off. Re-routing happens within 30 seconds. Deliverables: routing protocol doc, packet loss data, outdoor range map with signal strength annotations.",
+    intuition:"This is how: disaster-response networks function when infrastructure is destroyed, military mesh comms maintain contact without a base station, satellite constellations like Starlink route data between satellites, and underground mine communication networks stay operational — all self-healing, no single point of failure.",
+    skills:["Wireless protocol design from scratch","Mesh routing algorithm implementation","RF signal characterisation and range testing","Network resilience testing","Technical documentation"],
+    vocab:["LoRa","RSSI","Mesh Network","Routing Protocol","Packet","Node","Topology","Fault Tolerance","Self-healing"],
+    mentor:"Mentors challenge you on: What happens if two nodes fail simultaneously? How does your protocol handle packet storms? What's the theoretical maximum network size before routing breaks down?",
+    levels:["Checkpoint 1 · Protocol Design Review","Checkpoint 2 · Network Deployment","Checkpoint 3 · Failure Mode Testing","Final · Range Report & Portfolio"]
   },
 ];
 
-// ══════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════
-let activeTier   = "all";
-let activeDomain = "all";
+// ══════════════════ STATE ══════════════════
+let aTier = "all", aDomain = "all";
 
-// ══════════════════════════════════════════
-//  RENDER HELPERS
-// ══════════════════════════════════════════
-function getDomains() {
-  return ["all", ...Array.from(new Set(challenges.map(c=>c.domain))).sort()];
+// ══════════════════ DOMAIN BAR ══════════════════
+function renderDomains() {
+  const domains = ["all", ...Array.from(new Set(data.map(c=>c.domain))).sort()];
+  document.getElementById("dstrip").innerHTML = domains.map(d =>
+    `<div class="dchip ${d===aDomain?'on':''}" onclick="fdomain('${d}',this)">${d==='all'?'All Domains':d}</div>`
+  ).join('');
 }
 
-function renderDomainTape() {
-  document.getElementById("domain-tape").innerHTML =
-    getDomains().map(d =>
-      `<div class="domain-chip ${d===activeDomain?'active':''}" onclick="filterDomain('${d}',this)">${d==='all'?'All Domains':d}</div>`
-    ).join('');
-}
-
+// ══════════════════ RENDER CHALLENGES ══════════════════
 function renderAll() {
   updateGhost();
-  renderDomainTape();
-  const container = document.getElementById("tiers-container");
+  renderDomains();
+  const container = document.getElementById("tc");
   container.innerHTML = "";
   ["1","2","3"].forEach(tier => {
     const info = TIERS[tier];
-    const list = challenges.filter(c =>
-      (activeTier==="all" || c.tier===activeTier) &&
-      (activeDomain==="all" || c.domain===activeDomain) &&
+    const list = data.filter(c =>
+      (aTier==="all"||c.tier===aTier) &&
+      (aDomain==="all"||c.domain===aDomain) &&
       c.tier===tier
     );
     if (!list.length) return;
-
-    const sec = document.createElement("div");
-    sec.innerHTML = `
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `
       <div class="tier-section">
-        <div class="tier-header ${info.cls}">
+        <div class="tier-hdr ${info.cls}">
           <span class="tier-badge">${info.label}</span>
-          <span class="tier-name">${tierFullName(tier)}</span>
-          <span class="tier-sub">${info.sub}</span>
+          <span class="tier-name">${info.name}</span>
+          <span class="tier-meta">${info.sub}</span>
         </div>
-        <div class="challenge-grid ${info.cls}">
-          ${list.map(c=>cardHTML(c,info)).join('')}
-        </div>
+        ${list.map((c,i) => cardHTML(c, i+1)).join('')}
       </div>
-      ${tier!=="3" ? tapeDivider(tier) : ""}
+      ${tier!=="3" ? tapeHTML(tier) : ""}
     `;
-    container.appendChild(sec);
+    container.appendChild(wrap);
   });
 }
 
-function tierFullName(t) {
-  return {
-    "1":"Explorer Challenges — Fundamental Learning",
-    "2":"Solver Challenges — Structured Problem Solving",
-    "3":"Architect Challenges — Deep Tech & Creation"
-  }[t];
-}
-
-function tapeDivider(tier) {
+function tapeHTML(tier) {
   const words = {
-    "1":"CONDUCTORS · INSULATORS · RESISTANCE · PATTERN RECOGNITION · TILT SENSING · BINARY COMMS · ",
-    "2":"MAZE NAVIGATION · SENSOR FUSION · TOLERANCE ENGINEERING · BIAS AUDITING · ITERATION · ",
-  }[tier] || "";
-  return `<div class="tape-divider"><div class="tape-scroll">${words.repeat(6)}</div></div>`;
+    "1":"CONDUCTORS · INSULATORS · RESISTANCE · POTENTIOMETER · AI TRAINING · TILT SENSING · BINARY · IR COMMS · ",
+    "2":"ITERATION · AUTONOMOUS NAVIGATION · SENSOR INTEGRATION · TOLERANCE · BIAS AUDIT · FAILURE ANALYSIS · "
+  }[tier]||"";
+  return `<div class="tape"><div class="tape-txt">${words.repeat(8)}</div></div>`;
 }
 
-function cardHTML(c, info) {
+function cardHTML(c, localIdx) {
+  const info = TIERS[c.tier];
+  const hasReflection = !!c.reflection;
+  const hasMentor = !!c.mentor;
+
   return `
-    <div class="card" onclick="openModal(${c.id})">
-      <div class="card-head">
-        <span class="card-domain">${c.domain}</span>
-        <span class="card-time">⏱ ${c.time}</span>
+  <article class="challenge ${info.cls}" id="card-${c.id}">
+    <div class="ch-header">
+      <div class="ch-num">${c.num}</div>
+      <div class="ch-meta">
+        <span class="ch-tag">${c.domain} · ${c.time}</span>
+        <div class="ch-title">${c.title}</div>
+        <div class="ch-q">"${c.mystery}"</div>
       </div>
-      <div class="card-body">
-        <div class="card-title">${c.title}</div>
-        <div class="card-mystery">"${c.mystery}"</div>
-        <div class="card-levels">
-          ${(c.levels||[]).slice(0,3).map((l,i)=>`
-            <div class="level-row">
-              <span class="level-num">LVL ${i+1}</span>
-              <span class="level-title">${l}</span>
-            </div>`).join('')}
+      <div class="ch-badges">
+        <span class="ch-time">⏱ ${c.time}</span>
+        <button class="ch-expand" onclick="toggleCard(${c.id}, this)">View Details ▾</button>
+      </div>
+    </div>
+
+    <div class="ch-expandable" id="exp-${c.id}">
+      <!-- TWO COLUMN BODY -->
+      <div class="ch-body">
+        <div class="ch-col">
+          <div class="sec-label">Core Idea</div>
+          <p class="sec-text">${c.coreIdea}</p>
+
+          <div class="sec-label" style="margin-top:22px">Mission</div>
+          <p class="sec-text">${c.mission}</p>
+
+          <div class="sec-label" style="margin-top:22px">Steps</div>
+          <div class="steps-list">
+            ${c.steps.map((s,i)=>`
+              <div class="step">
+                <div class="step-dot">${i+1}</div>
+                <p>${s}</p>
+              </div>`).join('')}
+          </div>
+        </div>
+
+        <div class="ch-col">
+          <div class="sec-label">The Loot · Materials</div>
+          <div class="loot-wrap">
+            ${c.loot.map(l=>`<span class="loot-tag">${l}</span>`).join('')}
+          </div>
+
+          <div class="sec-label" style="margin-top:22px">Levels / Progression</div>
+          <div class="levels-list">
+            ${(c.levels||[]).map((l,i)=>`
+              <div class="lv-row">
+                <span class="lv-n">LVL ${i+1}</span>
+                <span class="lv-t">${l}</span>
+              </div>`).join('')}
+          </div>
+
+          <div class="sec-label" style="margin-top:22px">Skills Unlocked</div>
+          <div class="loot-wrap">
+            ${(c.skills||[]).map(s=>`<span class="loot-tag" style="border-color:rgba(13,13,13,.2)">${s}</span>`).join('')}
+          </div>
+
+          <div class="sec-label" style="margin-top:22px">Vocabulary</div>
+          <div class="loot-wrap">
+            ${(c.vocab||[]).map(v=>`<span class="loot-tag" style="font-style:italic">${v}</span>`).join('')}
+          </div>
+
+          ${hasReflection ? `
+          <div class="sec-label" style="margin-top:22px">Mandatory Reflection</div>
+          <div class="reflection-block"><p>${c.reflection}</p></div>` : ''}
+
+          ${hasMentor ? `
+          <div class="sec-label" style="margin-top:22px">Role of Mentors</div>
+          <div class="mentor-block"><p>${c.mentor}</p></div>` : ''}
         </div>
       </div>
-      <div class="card-foot">
-        <button class="btn-card" onclick="event.stopPropagation();openModal(${c.id})">View Details</button>
-        <button class="btn-card btn-dl" onclick="event.stopPropagation();downloadChallenge(${c.id})">⬇ Download</button>
+
+      <!-- INTUITION BAR -->
+      <div class="intuition-bar">
+        <div class="int-icon">💡</div>
+        <div class="int-content">
+          <div class="int-label">Maker's Intuition · Real-World Connection</div>
+          <div class="int-text">${c.intuition}</div>
+        </div>
       </div>
-    </div>`;
+
+      <!-- OUTCOMES -->
+      <div class="ch-outcomes">
+        <div class="out-cell">
+          <div class="out-icon">🏆</div>
+          <div class="out-label">Success Goal</div>
+          <div class="out-text">${c.success}</div>
+        </div>
+        <div class="out-cell">
+          <div class="out-icon">📖</div>
+          <div class="out-label">What You Leave With</div>
+          <div class="out-text">
+            <strong>Skills:</strong> ${(c.skills||[]).join(', ')}<br><br>
+            <strong>Vocabulary:</strong> ${(c.vocab||[]).join(' · ')}
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>`;
+}
+
+function toggleCard(id, btn) {
+  const exp = document.getElementById("exp-"+id);
+  const isOpen = exp.classList.contains("open");
+  exp.classList.toggle("open");
+  btn.textContent = isOpen ? "View Details ▾" : "Close ▴";
 }
 
 function updateGhost() {
-  const vis = challenges.filter(c =>
-    (activeTier==="all" || c.tier===activeTier) &&
-    (activeDomain==="all" || c.domain===activeDomain)
+  const n = data.filter(c=>
+    (aTier==="all"||c.tier===aTier)&&(aDomain==="all"||c.domain===aDomain)
   ).length;
-  document.getElementById("ghost-num").textContent = String(vis).padStart(2,"0");
+  document.getElementById("ghost").textContent = String(n).padStart(2,"0");
 }
 
-// ══════════════════════════════════════════
-//  FILTERS
-// ══════════════════════════════════════════
-function filterTier(tier, el) {
-  activeTier = tier;
-  document.querySelectorAll(".pill").forEach(p=>p.classList.remove("active"));
-  el.classList.add("active");
-  renderAll();
+// ══════════════════ FILTERS ══════════════════
+function ftier(t, el) {
+  aTier = t;
+  document.querySelectorAll(".tpill").forEach(p=>p.classList.remove("on"));
+  el.classList.add("on"); renderAll();
 }
-function filterDomain(domain, el) {
-  activeDomain = domain;
-  document.querySelectorAll(".domain-chip").forEach(c=>c.classList.remove("active"));
-  el.classList.add("active");
-  renderAll();
+function fdomain(d, el) {
+  aDomain = d;
+  document.querySelectorAll(".dchip").forEach(c=>c.classList.remove("on"));
+  el.classList.add("on"); renderAll();
 }
 
-// ══════════════════════════════════════════
-//  MODAL
-// ══════════════════════════════════════════
-function openModal(id) {
-  const c = challenges.find(x=>x.id===id);
-  const info = TIERS[c.tier];
-
-  // tags
-  const tagStyle = {
-    "1":`border-color:var(--yellow);color:var(--ink);background:rgba(255,224,64,0.15)`,
-    "2":`border-color:var(--orange);color:var(--orange)`,
-    "3":`border-color:var(--teal);color:var(--teal)`
-  }[c.tier];
-  document.getElementById("m-tags").innerHTML = `
-    <span class="m-tag" style="${tagStyle}">${info.label}</span>
-    <span class="m-tag" style="border-color:rgba(13,13,13,0.2);color:var(--muted)">${c.domain}</span>
-    <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">⏱ ${c.time}</span>
-  `;
-  document.getElementById("m-title").textContent = c.title;
-  document.getElementById("m-mystery").textContent = `"${c.mystery}"`;
-
-  // body
-  document.getElementById("m-body").innerHTML = `
-    <div class="ms">
-      <div class="ms-label">Mission</div>
-      <p>${c.mission}</p>
-    </div>
-    <div class="ms">
-      <div class="ms-label">Steps</div>
-      <div class="step-list">
-        ${c.steps.map((s,i)=>`
-          <div class="m-step">
-            <div class="m-sn ${info.stepCls}">${i+1}</div>
-            <p>${s}</p>
-          </div>`).join('')}
-      </div>
-    </div>
-    <div class="ms">
-      <div class="ms-label">The Loot · Materials</div>
-      <div class="loot-wrap">${c.loot.map(l=>`<span class="loot-tag">${l}</span>`).join('')}</div>
-    </div>
-    <div class="ms">
-      <div class="ms-label">Maker's Intuition</div>
-      <div class="intuition-box m${info.cls}"><p>💡 ${c.intuition}</p></div>
-    </div>
-  `;
-
-  // outcomes
-  document.getElementById("m-outcomes").innerHTML = `
-    <div class="outcome-cell">
-      <div class="outcome-label">🏆 Success Goal</div>
-      <div class="outcome-text">${c.success}</div>
-    </div>
-    <div class="outcome-cell">
-      <div class="outcome-label">📈 Skills Unlocked</div>
-      <div class="outcome-text">${(c.levels||[]).map((l,i)=>`<div style="margin-bottom:4px">✓ ${l}</div>`).join('')}</div>
-    </div>
-  `;
-
-  document.getElementById("m-dl").onclick = () => downloadChallenge(id);
-  document.getElementById("overlay").classList.add("open");
-  document.body.style.overflow = "hidden";
+// ══════════════════ PUBLISH MODAL ══════════════════
+function openPublish() {
+  document.getElementById("pub-overlay").classList.add("open");
+  document.body.style.overflow="hidden";
 }
-function closeOverlay(e) { if(e.target===document.getElementById("overlay")) closeModal(); }
-function closeModal() {
-  document.getElementById("overlay").classList.remove("open");
-  document.body.style.overflow = "";
+function closePublish() {
+  document.getElementById("pub-overlay").classList.remove("open");
+  document.body.style.overflow="";
+}
+function closePubOverlay(e) {
+  if(e.target===document.getElementById("pub-overlay")) closePublish();
 }
 
-// ══════════════════════════════════════════
-//  DOWNLOAD
-// ══════════════════════════════════════════
-function downloadChallenge(id) {
-  const c = challenges.find(x=>x.id===id);
-  const col = {"1":"#FFE040","2":"#FF6B2B","3":"#00C2A8"}[c.tier];
-  const tname = {"1":"T1 · Explorer","2":"T2 · Solver","3":"T3 · Architect"}[c.tier];
-
-  const html = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8">
-<title>${c.title}</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'DM Sans',sans-serif; background:#F5F0E8; color:#0D0D0D; padding:52px; max-width:760px; margin:0 auto; }
-.badge { display:inline-block; border:1.5px solid ${col}; color:#0D0D0D; background:${col}33;
-  padding:4px 14px; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px;
-  text-transform:uppercase; margin-bottom:16px; }
-h1 { font-family:'Bebas Neue',sans-serif; font-size:52px; letter-spacing:1px; line-height:1; margin-bottom:6px; }
-.mystery { font-family:'Space Mono',monospace; font-size:12px; font-style:italic; color:rgba(13,13,13,0.5);
-  margin-bottom:28px; padding-bottom:24px; border-bottom:2px solid #0D0D0D; }
-.sl { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase;
-  color:rgba(13,13,13,0.4); margin-top:24px; margin-bottom:10px;
-  display:flex; align-items:center; gap:10px; }
-.sl::after { content:''; flex:1; height:1px; background:rgba(13,13,13,0.12); }
-p, .st { font-size:14px; line-height:1.8; color:#2A2A2A; }
-.step { display:flex; gap:12px; margin-bottom:10px; align-items:flex-start; }
-.sn { width:24px; height:24px; border-radius:50%; background:${col}; border:1.5px solid #0D0D0D;
-  display:flex; align-items:center; justify-content:center;
-  font-family:'Space Mono',monospace; font-size:10px; font-weight:700; flex-shrink:0; }
-.loot-wrap { display:flex; flex-wrap:wrap; gap:7px; }
-.lt { font-family:'Space Mono',monospace; font-size:10px; padding:4px 12px;
-  border:1.5px solid rgba(13,13,13,0.15); color:#2A2A2A; background:#fff; }
-.sbox { padding:14px 18px; border:2px solid #0D0D0D; background:#fff; margin-top:8px; }
-.ibox { padding:14px 18px; border-left:4px solid ${col}; background:#fff; margin-top:8px; }
-.outcomes { display:grid; grid-template-columns:1fr 1fr; gap:0; border-top:2px solid #0D0D0D; margin-top:28px; }
-.oc { padding:18px; }
-.oc:first-child { border-right:2px solid #0D0D0D; }
-.ol { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:rgba(13,13,13,0.4); margin-bottom:8px; }
-.ot { font-size:13px; line-height:1.7; color:#2A2A2A; }
-.footer { margin-top:36px; padding-top:16px; border-top:1px solid rgba(13,13,13,0.15);
-  font-family:'Space Mono',monospace; font-size:9px; color:rgba(13,13,13,0.3);
-  display:flex; justify-content:space-between; }
-@media print { body { padding:28px; } }
-</style></head><body>
-<div class="badge">${tname} · ${c.domain} · ${c.time}</div>
-<h1>${c.title}</h1>
-<div class="mystery">"${c.mystery}"</div>
-
-<div class="sl">Mission</div>
-<p>${c.mission}</p>
-
-<div class="sl">Steps</div>
-${c.steps.map((s,i)=>`<div class="step"><div class="sn">${i+1}</div><p>${s}</p></div>`).join('')}
-
-<div class="sl">The Loot · Materials</div>
-<div class="loot-wrap">${c.loot.map(l=>`<span class="lt">${l}</span>`).join('')}</div>
-
-<div class="sl">Maker's Intuition</div>
-<div class="ibox"><p>💡 ${c.intuition}</p></div>
-
-<div class="outcomes">
-  <div class="oc"><div class="ol">🏆 Success Goal</div><div class="ot">${c.success}</div></div>
-  <div class="oc"><div class="ol">📈 Levels</div><div class="ot">${(c.levels||[]).map(l=>`✓ ${l}<br>`).join('')}</div></div>
-</div>
-
-<div class="footer">
-  <span>MakerPath Challenge Platform</span>
-  <span>${c.title} · Printed ${new Date().toLocaleDateString()}</span>
-</div>
-<script>window.onload=()=>window.print()<\/script>
-</body></html>`;
-  const w = window.open('','_blank');
-  w.document.write(html);
-  w.document.close();
-}
-
-// ══════════════════════════════════════════
-//  ADMIN
-// ══════════════════════════════════════════
+// ══════════════════ ADMIN ══════════════════
 function showAdmin() {
-  document.getElementById("main-view").classList.add("hidden");
+  document.getElementById("main-view").classList.add("gone");
   document.getElementById("admin-view").classList.add("open");
-  document.getElementById("btn-challenges").classList.remove("active");
+  document.getElementById("btn-ch").classList.remove("act");
   renderAdminList();
 }
 function showMain() {
-  document.getElementById("main-view").classList.remove("hidden");
+  document.getElementById("main-view").classList.remove("gone");
   document.getElementById("admin-view").classList.remove("open");
-  document.getElementById("btn-challenges").classList.add("active");
+  document.getElementById("admin-view").classList.remove("open");
+  document.getElementById("btn-ch").classList.add("act");
   renderAll();
 }
 
 function renderAdminList() {
-  const el = document.getElementById("admin-list");
-  if (!challenges.length) {
-    el.innerHTML = `<p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)">No challenges yet.</p>`;
-    return;
-  }
-  el.innerHTML = challenges.map(c => `
-    <div class="admin-item">
+  const el = document.getElementById("adm-list");
+  if (!data.length) { el.innerHTML=`<p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)">No challenges yet.</p>`; return; }
+  el.innerHTML = data.map(c=>`
+    <div class="adm-item">
       <div style="flex:1">
-        <div class="admin-item-name">${c.title}</div>
-        <div class="admin-item-meta">${TIERS[c.tier].label} · ${c.domain} · ${c.time}</div>
+        <div class="adm-iname">${c.title}</div>
+        <div class="adm-imeta">${TIERS[c.tier].label} · ${c.domain} · ${c.time}</div>
       </div>
-      <button class="btn-del" onclick="deleteChallenge(${c.id})">✕ Remove</button>
+      <button class="btn-del" onclick="delChallenge(${c.id})">✕</button>
     </div>`).join('');
 }
 
@@ -1134,45 +1135,48 @@ function addChallenge() {
   const mystery   = document.getElementById("a-mystery").value.trim();
   const domain    = document.getElementById("a-domain").value;
   const tier      = document.getElementById("a-tier").value;
-  const time      = document.getElementById("a-time").value.trim() || "60 min";
+  const time      = document.getElementById("a-time").value.trim()||"60 min";
   const mission   = document.getElementById("a-mission").value.trim();
+  const stepsRaw  = document.getElementById("a-steps").value.trim();
   const lootRaw   = document.getElementById("a-loot").value.trim();
   const success   = document.getElementById("a-success").value.trim();
   const intuition = document.getElementById("a-intuition").value.trim();
+  const levelsRaw = document.getElementById("a-levels").value.trim();
 
-  if (!title || !mystery || !mission) { showToast("Fill in Title, Mystery, and Mission at minimum."); return; }
+  if(!title||!mystery||!mission){showToast("Fill in Title, Mystery, and Mission."); return;}
 
-  challenges.push({
-    id: Date.now(), tier, domain, time, title, mystery, mission,
-    steps: [mission],
-    loot: lootRaw ? lootRaw.split(',').map(s=>s.trim()) : [],
-    success: success || "Complete the mission and document your process.",
-    intuition: intuition || "This concept powers real-world systems.",
-    levels: ["L1 · Core Challenge"]
+  const nextNum = String(data.length+1).padStart(2,"0");
+  data.push({
+    id:Date.now(), tier, domain, time, num:nextNum, title, mystery,
+    coreIdea: mystery,
+    mission,
+    steps: stepsRaw ? stepsRaw.split("\n").filter(Boolean) : [mission],
+    loot: lootRaw ? lootRaw.split(",").map(s=>s.trim()) : [],
+    success: success||"Complete the mission and document your process.",
+    intuition: intuition||"This concept powers real-world systems.",
+    skills:[], vocab:[],
+    levels: levelsRaw ? levelsRaw.split(",").map(s=>s.trim()) : ["L1 · Core Challenge"]
   });
 
-  ["a-title","a-mystery","a-time","a-mission","a-loot","a-success","a-intuition"]
-    .forEach(id => document.getElementById(id).value = "");
+  ["a-title","a-mystery","a-time","a-mission","a-steps","a-loot","a-success","a-intuition","a-levels"]
+    .forEach(id=>document.getElementById(id).value="");
   renderAdminList();
   showToast("✓ Challenge added!");
 }
 
-function deleteChallenge(id) {
-  challenges = challenges.filter(c=>c.id!==id);
+function delChallenge(id) {
+  data = data.filter(c=>c.id!==id);
   renderAdminList();
-  showToast("Challenge removed.");
+  showToast("Removed.");
 }
 
 function showToast(msg) {
   const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"), 2800);
+  t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2800);
 }
 
-// ══════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════
+// ══════════════════ INIT ══════════════════
 renderAll();
 </script>
 </body>
