@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Param Makersadda</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    body { background: var(--ink); min-height: 100vh; display: flex; flex-direction: column; }
+    .auth-wrap {
+      flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+      max-width: 960px; margin: 2.5rem auto; width: 100%; padding: 0 1.5rem;
+      align-items: stretch;
+    }
+    .auth-left {
+      background: var(--orange); border: 2px solid var(--ink);
+      padding: 3rem 2.5rem; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .auth-left h2 { font-size: 1.65rem; margin-bottom: 0.75rem; color: #fff; }
+    .auth-left p  { font-size: 0.875rem; color: rgba(255,255,255,0.75); }
+    .auth-perk { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.875rem; color: #fff; }
+    .auth-perk .pk-icon {
+      width: 22px; height: 22px; background: rgba(0,0,0,0.2); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 800; flex-shrink: 0; margin-top: 1px;
+    }
+    .auth-right {
+      background: var(--paper); border: 2px solid var(--ink); border-left: none; padding: 3rem 2.5rem;
+    }
+    .auth-brand { font-family: var(--font-mono); font-size: 0.72rem; color: var(--grey-dark); margin-bottom: 2rem; }
+    @media (max-width: 700px) {
+      .auth-wrap { grid-template-columns: 1fr; margin: 0; padding: 0; }
+      .auth-left { display: none; }
+      .auth-right { border-left: 2px solid var(--ink); padding: 2rem 1.5rem; min-height: 100vh; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mini Nav -->
+<nav style="background:var(--ink); border-bottom:3px solid var(--orange); padding:0 1.5rem; flex-shrink:0;">
+  <div style="max-width:960px; margin:0 auto; height:54px; display:flex; align-items:center; justify-content:space-between;">
+    <a href="index.html" style="font-weight:800; color:var(--paper); font-size:1rem; letter-spacing:-0.02em;">
+      PARAM<span style="color:var(--orange);">.MKRSADDA</span>
+    </a>
+    <a href="index.html" style="color:var(--grey-dark); font-size:0.78rem; font-family:var(--font-mono);">← Home</a>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <!-- Left Panel -->
+  <div class="auth-left">
+    <div>
+      <div class="badge badge-dark mb-3">Param Innovation Lab</div>
+      <h2>Your maker journey starts here.</h2>
+      <p>Join Bengaluru's maker community — learn, build, get verified.</p>
+      <div class="flex-col gap mt-4">
+        <div class="auth-perk">
+          <div class="pk-icon">→</div>
+          <div>Structured T1 → T2 → T3 learning tracks</div>
+        </div>
+        <div class="auth-perk">
+          <div class="pk-icon">→</div>
+          <div>Propose and build mentor-supervised projects</div>
+        </div>
+        <div class="auth-perk">
+          <div class="pk-icon">→</div>
+          <div>Auto-issued badges from events & completions</div>
+        </div>
+        <div class="auth-perk">
+          <div class="pk-icon">→</div>
+          <div>Public maker profile — verified, resume-ready</div>
+        </div>
+      </div>
+    </div>
+    <div class="mono text-xs" style="opacity:0.55; margin-top:2rem; color:#fff;">parammakerspace.in</div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="auth-right">
+    <div class="auth-brand">// MKRSADDA_AUTH</div>
+
+    <!-- Tabs -->
+    <div class="tabs mb-4">
+      <button class="tab-btn active" id="tabLogin"  onclick="switchTab('login')">Login</button>
+      <button class="tab-btn"        id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+
+    <div id="authAlert" class="alert hidden"></div>
+
+    <!-- LOGIN -->
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label form-required">Email</label>
+        <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label form-required">Password</label>
+        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg mt-2" id="loginBtn">Login →</button>
+      <p class="text-center text-sm text-grey mt-3">
+        No account?
+        <a href="#" onclick="switchTab('signup')" style="font-weight:700; color:var(--ink);">Sign up free</a>
+      </p>
+    </form>
+
+    <!-- SIGNUP -->
+    <form id="signupForm" class="hidden" onsubmit="handleSignup(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label form-required">First Name</label>
+          <input type="text" id="signupFirst" class="form-input" placeholder="Arjun" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label form-required">Last Name</label>
+          <input type="text" id="signupLast" class="form-input" placeholder="Kumar" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label form-required">Email</label>
+        <input type="email" id="signupEmail" class="form-input" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label form-required">Password</label>
+        <input type="password" id="signupPassword" class="form-input" placeholder="Min 8 characters" required minlength="8" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label class="form-label">I am a</label>
+        <select id="signupRole" class="form-select">
+          <option value="maker">Maker / Student</option>
+          <option value="mentor">Mentor</option>
+          <option value="visitor">Visitor</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg mt-2" id="signupBtn">Create Account →</button>
+      <p class="text-center text-sm text-grey mt-3">
+        Have an account?
+        <a href="#" onclick="switchTab('login')" style="font-weight:700; color:var(--ink);">Log in</a>
+      </p>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  onReady(async () => {
+    await Auth.redirectIfAuthed('dashboard.html');
+    if (getParam('tab') === 'signup') switchTab('signup');
+  });
+
+  function switchTab(tab) {
+    const isLogin = tab === 'login';
+    toggle($('loginForm'),  isLogin);
+    toggle($('signupForm'), !isLogin);
+    $('tabLogin').classList.toggle('active',  isLogin);
+    $('tabSignup').classList.toggle('active', !isLogin);
+    clearAlert('authAlert');
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const btn = $('loginBtn');
+    btnLoading(btn, true, 'Login →');
+    clearAlert('authAlert');
+    const { error } = await Auth.signIn($('loginEmail').value.trim(), $('loginPassword').value);
+    if (error) { showAlert('authAlert', error.message, 'error'); btnLoading(btn, false, 'Login →'); }
+    else window.location.href = 'dashboard.html';
+  }
+
+  async function handleSignup(e) {
+    e.preventDefault();
+    const btn = $('signupBtn');
+    btnLoading(btn, true, 'Create Account →');
+    clearAlert('authAlert');
+    const { error } = await Auth.signUp(
+      $('signupEmail').value.trim(), $('signupPassword').value,
+      { full_name: `${$('signupFirst').value.trim()} ${$('signupLast').value.trim()}`,
+        first_name: $('signupFirst').value.trim(), last_name: $('signupLast').value.trim(),
+        role: $('signupRole').value }
+    );
+    if (error) { showAlert('authAlert', error.message, 'error'); btnLoading(btn, false, 'Create Account →'); }
+    else { showAlert('authAlert', 'Account created! Check your email to confirm, then log in.', 'success'); btnLoading(btn, false, 'Create Account →'); setTimeout(() => switchTab('login'), 3500); }
+  }
+</script>
+</body>
+</html>

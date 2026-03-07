@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Param Makersadda</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin-bottom: 2rem; }
+    .stat-cell { padding: 1.25rem; text-align: center; border-right: 2px solid var(--ink); }
+    .stat-cell:last-child { border-right: none; }
+    .stat-cell .s-num { font-size: 2rem; font-weight: 800; color: var(--orange); line-height: 1; }
+    .stat-cell .s-lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grey-dark); margin-top: 0.3rem; font-family: var(--font-mono); }
+    @media(max-width:768px) { .stats-row { grid-template-columns: repeat(2,1fr); } .stat-cell:nth-child(2) { border-right:none; } .stat-cell:nth-child(1),.stat-cell:nth-child(2) { border-bottom:2px solid var(--ink); } }
+
+    .credential-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--grey); }
+    .credential-item:last-child { border-bottom: none; }
+    .cred-icon { width: 36px; height: 36px; background: var(--orange); border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .cred-info { flex: 1; }
+    .cred-info .c-name { font-weight: 700; font-size: 0.875rem; }
+    .cred-info .c-date { font-size: 0.72rem; color: var(--grey-dark); font-family: var(--font-mono); }
+
+    .activity-item { display: flex; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--grey); align-items: flex-start; }
+    .activity-item:last-child { border-bottom: none; }
+    .act-dot { width: 10px; height: 10px; background: var(--orange); border: 2px solid var(--ink); flex-shrink: 0; margin-top: 4px; }
+    .act-text { font-size: 0.85rem; }
+    .act-time { font-size: 0.7rem; color: var(--grey-dark); font-family: var(--font-mono); }
+  </style>
+</head>
+<body>
+
+<nav class="nav" id="mainNav"></nav>
+
+<div class="sidebar-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-user" id="sidebarUser">
+      <div class="avatar avatar-lg" id="sidebarAvatar">--</div>
+      <div class="s-name" id="sidebarName">Loading...</div>
+      <div class="s-handle" id="sidebarHandle">@handle</div>
+      <div class="mt-2" id="sidebarTier"></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Main</div>
+      <a href="dashboard.html" class="active">Overview</a>
+      <a href="dashboard-learning.html">My Learning</a>
+      <a href="dashboard-projects.html">My Projects</a>
+      <a href="dashboard-events.html">My Events</a>
+      <a href="dashboard-credentials.html">Credentials</a>
+      <div class="nav-group-label">Account</div>
+      <a href="dashboard-profile.html">Edit Profile</a>
+      <a href="#" onclick="Auth.signOut()">Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div id="dashboardContent">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script>
+const TIERS = ['Curious','Tinkerer','Builder','Maker','Innovator','Lab Pro'];
+const TIER_BADGE = ['badge-grey','badge-orange','badge-indigo','badge-teal','badge-orange','badge-green'];
+
+onReady(async () => {
+  await renderNav('dashboard.html');
+  const user = await Auth.requireAuth('auth.html');
+  if (!user) return;
+
+  // Load profile
+  const { data: profile } = await db.from('maker_profiles').select('*').eq('user_id', user.id).single();
+  const name = profile?.full_name || user.user_metadata?.full_name || 'Maker';
+  const handle = profile?.slug || user.email?.split('@')[0] || 'maker';
+  const tierIdx = profile?.tier_level ?? 0;
+
+  // Sidebar
+  $('sidebarAvatar').textContent = getInitials(name);
+  $('sidebarName').textContent = name;
+  $('sidebarHandle').textContent = '@' + handle;
+  $('sidebarTier').innerHTML = `<span class="badge ${TIER_BADGE[tierIdx]}">${TIERS[tierIdx]}</span>`;
+
+  // Parallel data load
+  const [tracksRes, projectsRes, credsRes, eventsRes] = await Promise.all([
+    db.from('track_enrollments').select('*').eq('user_id', user.id),
+    db.from('project_members').select('*, projects(id,title,status,tier)').eq('user_id', user.id).limit(3),
+    db.from('maker_credentials').select('*').eq('user_id', user.id).order('issued_at', {ascending:false}).limit(5),
+    db.from('event_registrations').select('*, events(id,title,type,starts_at)').eq('user_id', user.id).order('created_at',{ascending:false}).limit(4),
+  ]);
+
+  const tracks   = tracksRes.data || [];
+  const projects = (projectsRes.data || []).map(m => m.projects).filter(Boolean);
+  const creds    = credsRes.data || [];
+  const events   = (eventsRes.data || []).map(m => m.events).filter(Boolean);
+
+  $('dashboardContent').innerHTML = `
+    <div class="page-header">
+      <div class="ph-label">// Overview</div>
+      <div class="flex-between" style="flex-wrap:wrap; gap:1rem;">
+        <h1>Welcome back, ${name.split(' ')[0]}.</h1>
+        <span class="badge ${TIER_BADGE[tierIdx]} mono">${TIERS[tierIdx]}</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-cell"><div class="s-num">${tracks.length}</div><div class="s-lbl">Tracks</div></div>
+      <div class="stat-cell"><div class="s-num">${projects.length}</div><div class="s-lbl">Projects</div></div>
+      <div class="stat-cell"><div class="s-num">${creds.length}</div><div class="s-lbl">Badges</div></div>
+      <div class="stat-cell"><div class="s-num">${events.length}</div><div class="s-lbl">Events</div></div>
+    </div>
+
+    <div class="grid-2" style="gap:2rem;">
+      <!-- My Learning -->
+      <div>
+        <div class="flex-between mb-3">
+          <h3>My Learning</h3>
+          <a href="explorer.html" class="btn btn-sm btn-ghost">All Tracks →</a>
+        </div>
+        ${tracks.length === 0
+          ? `<div class="empty-state" style="padding:2rem;">
+               <div class="empty-icon">📡</div>
+               <h3>No tracks yet</h3>
+               <p>Start your first track in Explorer Hub.</p>
+               <a href="explorer.html" class="btn btn-primary btn-sm">Browse Tracks →</a>
+             </div>`
+          : tracks.map(t => `
+            <div class="card mb-2" style="padding:1.25rem;">
+              <div class="flex-between mb-2">
+                <span class="badge badge-orange">${t.track_tier || 'T1'}</span>
+                <span class="text-xs text-grey mono">${t.progress_pct ?? 0}%</span>
+              </div>
+              <div class="bold text-sm mb-2">${t.track_name || 'Track'}</div>
+              <div class="progress"><div class="progress-bar" style="width:${t.progress_pct ?? 0}%"></div></div>
+            </div>`).join('')
+        }
+      </div>
+
+      <!-- My Projects -->
+      <div>
+        <div class="flex-between mb-3">
+          <h3>My Projects</h3>
+          <a href="projects.html" class="btn btn-sm btn-ghost">All Projects →</a>
+        </div>
+        ${projects.length === 0
+          ? `<div class="empty-state" style="padding:2rem;">
+               <div class="empty-icon">🔧</div>
+               <h3>No projects yet</h3>
+               <p>Propose or join a maker project.</p>
+               <a href="projects.html" class="btn btn-primary btn-sm">Browse Projects →</a>
+             </div>`
+          : projects.map(p => `
+            <div class="card card-hover mb-2" style="padding:1.25rem;">
+              <div class="flex-between mb-1">
+                ${statusBadge(p.status)}
+                <span class="badge badge-grey">${p.tier || 'T1'}</span>
+              </div>
+              <div class="bold">${p.title}</div>
+            </div>`).join('')
+        }
+      </div>
+
+      <!-- Recent Credentials -->
+      <div>
+        <div class="flex-between mb-3">
+          <h3>Recent Badges</h3>
+          <a href="dashboard-credentials.html" class="btn btn-sm btn-ghost">All →</a>
+        </div>
+        <div class="card" style="padding:1rem;">
+          ${creds.length === 0
+            ? `<div class="text-center p-3 text-grey text-sm">No badges yet — complete a track or attend an event.</div>`
+            : creds.map(c => `
+              <div class="credential-item">
+                <div class="cred-icon">🏅</div>
+                <div class="cred-info">
+                  <div class="c-name">${c.title || c.credential_type || 'Badge'}</div>
+                  <div class="c-date">${formatDate(c.issued_at)}</div>
+                </div>
+                ${renderBadge(c.credential_type || 'badge', 'orange')}
+              </div>`).join('')
+          }
+        </div>
+      </div>
+
+      <!-- Upcoming Events -->
+      <div>
+        <div class="flex-between mb-3">
+          <h3>My Events</h3>
+          <a href="events.html" class="btn btn-sm btn-ghost">All Events →</a>
+        </div>
+        ${events.length === 0
+          ? `<div class="empty-state" style="padding:2rem;">
+               <div class="empty-icon">🎯</div>
+               <h3>No events registered</h3>
+               <p>Check upcoming hackathons and Tech Tuesdays.</p>
+               <a href="events.html" class="btn btn-primary btn-sm">Browse Events →</a>
+             </div>`
+          : events.map(ev => `
+            <div class="card card-hover mb-2" style="padding:1.25rem;">
+              <div class="flex-between mb-1">
+                <span class="badge badge-indigo">${ev.type || 'Event'}</span>
+                <span class="text-xs mono text-grey">${formatDate(ev.starts_at)}</span>
+              </div>
+              <div class="bold text-sm">${ev.title}</div>
+            </div>`).join('')
+        }
+      </div>
+    </div>`;
+});
+</script>
+</body>
+</html>

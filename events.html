@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events — Param Makersadda</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .event-card { border: 2px solid var(--ink); box-shadow: var(--shadow); overflow: hidden; background: var(--paper); transition: transform 0.15s, box-shadow 0.15s; }
+    .event-card:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
+    .event-top { padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--ink); }
+    .event-top.hackathon { background: var(--orange); color: #fff; }
+    .event-top.workshop  { background: var(--indigo); color: #fff; }
+    .event-top.tech-tuesday { background: var(--teal); color: #fff; }
+    .event-top.demo-day  { background: var(--ink);   color: var(--paper); border-bottom-color: var(--orange); }
+    .event-top.other     { background: var(--grey);  color: var(--ink); }
+    .event-date { font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; }
+    .event-body { padding: 1.25rem; }
+    .event-title { font-weight: 800; font-size: 1rem; margin-bottom: 0.4rem; }
+    .event-desc  { font-size: 0.8rem; color: var(--grey-dark); margin-bottom: 1rem; line-height: 1.6; }
+    .event-footer { border-top: 1px solid var(--grey); padding-top: 0.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+    .event-footer .ef-meta { font-family: var(--font-mono); font-size: 0.7rem; color: var(--grey-dark); }
+
+    .past-event { border: 2px solid var(--grey); padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1.25rem; opacity: 0.65; }
+    .past-event .pe-date { font-family: var(--font-mono); font-size: 0.72rem; width: 80px; flex-shrink: 0; }
+    .past-event h4 { font-size: 0.9rem; margin-bottom: 0.2rem; }
+    .past-event p  { font-size: 0.78rem; color: var(--grey-dark); }
+
+    .no-events { text-align:center; padding:4rem 2rem; border:2px dashed var(--grey-dark); }
+  </style>
+</head>
+<body>
+
+<nav class="nav" id="mainNav"></nav>
+
+<div style="background:var(--ink); color:var(--paper); border-bottom:3px solid var(--orange);">
+  <div class="container" style="padding:3rem 1.5rem;">
+    <p class="mono text-xs mb-2" style="opacity:0.45;">// Attend · Check In · Level Up</p>
+    <h1 style="font-size:clamp(1.75rem,4vw,3rem);">Adda <span style="color:var(--orange);">Events</span></h1>
+    <p style="opacity:0.7; margin-top:0.75rem; max-width:480px;">Hackathons, Tech Tuesdays, workshops, and demo days. QR check-in auto-issues your badge the moment you attend.</p>
+  </div>
+</div>
+
+<div class="container" style="padding-top:3rem; padding-bottom:4rem;">
+
+  <!-- Filters -->
+  <div class="filter-row">
+    <button class="filter-chip active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-chip" onclick="setFilter('hackathon', this)">Hackathon</button>
+    <button class="filter-chip" onclick="setFilter('workshop', this)">Workshop</button>
+    <button class="filter-chip" onclick="setFilter('tech-tuesday', this)">Tech Tuesday</button>
+    <button class="filter-chip" onclick="setFilter('demo-day', this)">Demo Day</button>
+  </div>
+
+  <h3 class="mb-3">Upcoming Events</h3>
+  <div class="grid-3 mb-6" id="upcomingGrid">
+    <div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>
+  </div>
+
+  <div class="divider-thin"></div>
+  <h3 class="mt-4 mb-3" style="opacity:0.55;">Past Events</h3>
+  <div class="flex-col gap-sm" id="pastGrid">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+
+</div>
+
+<footer class="footer" id="mainFooter"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script>
+let allEvents = [];
+let currentUser = null;
+let registrations = [];
+let currentFilter = 'all';
+const now = new Date().toISOString();
+
+const TYPE_CLASS = { hackathon:'hackathon', workshop:'workshop', 'tech-tuesday':'tech-tuesday', 'demo-day':'demo-day' };
+
+onReady(async () => {
+  await renderNav('events.html');
+  renderFooter();
+  currentUser = await Auth.getUser();
+
+  const [evRes, regRes] = await Promise.all([
+    db.from('events').select('*').order('starts_at', { ascending: true }),
+    currentUser ? db.from('event_registrations').select('event_id').eq('user_id', currentUser.id) : { data: [] },
+  ]);
+
+  allEvents    = evRes.data  || [];
+  registrations = (regRes.data || []).map(r => r.event_id);
+  renderEvents();
+});
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  $$('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderEvents();
+}
+
+function renderEvents() {
+  let filtered = allEvents;
+  if (currentFilter !== 'all') filtered = allEvents.filter(e => e.type === currentFilter);
+
+  const upcoming = filtered.filter(e => e.starts_at >= now);
+  const past     = filtered.filter(e => e.starts_at <  now);
+
+  // Upcoming
+  if (upcoming.length === 0) {
+    $('upcomingGrid').innerHTML = `<div class="no-events" style="grid-column:1/-1">
+      <div style="font-size:2rem; margin-bottom:1rem;">🎯</div>
+      <h3>No upcoming events</h3><p class="text-grey">Check back soon or follow us for announcements.</p>
+    </div>`;
+  } else {
+    $('upcomingGrid').innerHTML = upcoming.map(ev => {
+      const isReg   = registrations.includes(ev.id);
+      const typeKey = (ev.type || 'other').toLowerCase().replace(' ', '-');
+      const isFull  = ev.registrations_count >= ev.max_participants;
+      return `
+        <div class="event-card">
+          <div class="event-top ${TYPE_CLASS[typeKey] || 'other'}">
+            <span class="badge badge-dark">${ev.type || 'Event'}</span>
+            <span class="event-date">${formatDate(ev.starts_at)}</span>
+          </div>
+          <div class="event-body">
+            <div class="event-title">${ev.title}</div>
+            <div class="event-desc">${truncate(ev.description || '', 110)}</div>
+            ${ev.badge_on_attend ? '<div class="badge badge-orange mb-2">🏅 Badge on Attendance</div>' : ''}
+            <div class="event-footer">
+              <div class="ef-meta">
+                ${ev.location ? `📍 ${ev.location}` : '📍 Param Lab'}
+                ${ev.max_participants ? ` · ${ev.registrations_count || 0}/${ev.max_participants}` : ''}
+              </div>
+              ${isReg
+                ? `<span class="badge badge-green">Registered ✓</span>`
+                : isFull
+                ? `<span class="badge badge-grey">Full</span>`
+                : currentUser
+                ? `<button class="btn btn-sm btn-primary" onclick="register('${ev.id}')">Register →</button>`
+                : `<a href="auth.html" class="btn btn-sm btn-primary">Login →</a>`
+              }
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // Past
+  if (past.length === 0) {
+    $('pastGrid').innerHTML = `<p class="text-grey text-sm">No past events in this category.</p>`;
+  } else {
+    $('pastGrid').innerHTML = past.reverse().map(ev => `
+      <div class="past-event">
+        <div class="pe-date">${formatDate(ev.starts_at)}</div>
+        <div>
+          <h4>${ev.title}</h4>
+          <p>${ev.type || 'Event'}${ev.location ? ` · ${ev.location}` : ''}</p>
+        </div>
+        ${registrations.includes(ev.id) ? '<span class="badge badge-green ml-auto">Attended ✓</span>' : ''}
+      </div>`).join('');
+  }
+}
+
+async function register(eventId) {
+  if (!currentUser) { window.location.href = 'auth.html'; return; }
+  const { error } = await db.from('event_registrations').insert({ event_id: eventId, user_id: currentUser.id });
+  if (!error) { registrations.push(eventId); renderEvents(); }
+  else alert(error.message);
+}
+</script>
+</body>
+</html>

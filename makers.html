@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Makers — Param Makersadda</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .maker-card { border: 2px solid var(--ink); box-shadow: var(--shadow); padding: 1.5rem; transition: transform 0.15s, box-shadow 0.15s; background: var(--paper); cursor: pointer; }
+    .maker-card:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
+    .maker-card .mc-name { font-weight: 800; font-size: 1rem; margin: 0.75rem 0 0.2rem; }
+    .maker-card .mc-bio  { font-size: 0.8rem; color: var(--grey-dark); margin-bottom: 0.75rem; line-height: 1.5; }
+    .maker-card .mc-meta { font-family: var(--font-mono); font-size: 0.68rem; color: var(--grey-dark); }
+
+    .search-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+    .search-row input { flex: 1; }
+
+    .profile-modal .modal-body { padding: 0; }
+    .profile-hero { background: var(--ink); color: var(--paper); padding: 2rem; display: flex; gap: 1.5rem; align-items: flex-start; border-bottom: 3px solid var(--orange); }
+    .profile-info { flex: 1; }
+    .profile-name { font-weight: 800; font-size: 1.35rem; margin-bottom: 0.35rem; }
+    .profile-handle { font-family: var(--font-mono); font-size: 0.72rem; opacity: 0.5; margin-bottom: 0.75rem; }
+    .profile-bio { font-size: 0.875rem; opacity: 0.75; }
+    .profile-sections { padding: 1.5rem; }
+    .profile-section { margin-bottom: 1.5rem; }
+    .profile-section h4 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grey-dark); margin-bottom: 0.75rem; font-family: var(--font-mono); }
+    .cred-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.5rem; }
+    .cred-mini { border: 2px solid var(--ink); padding: 0.75rem; display: flex; gap: 0.75rem; align-items: center; }
+    .cred-mini .cm-icon { width: 30px; height: 30px; background: var(--orange); border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+    .cred-mini .cm-info { font-size: 0.78rem; font-weight: 700; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+    .modal-box { background: var(--paper); border: 2px solid var(--ink); box-shadow: var(--shadow-lg); width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { background: var(--ink); color: var(--paper); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--orange); position: sticky; top: 0; }
+    .modal-close { background: none; border: none; color: var(--paper); font-size: 1.4rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<nav class="nav" id="mainNav"></nav>
+
+<div style="background:var(--ink); color:var(--paper); border-bottom:3px solid var(--orange);">
+  <div class="container" style="padding:3rem 1.5rem;">
+    <p class="mono text-xs mb-2" style="opacity:0.45;">// Bengaluru's Maker Community</p>
+    <h1 style="font-size:clamp(1.75rem,4vw,3rem);">The <span style="color:var(--orange);">Makers</span></h1>
+    <p style="opacity:0.7; margin-top:0.75rem; max-width:480px;">Explore verified maker profiles from Param Innovation Lab. Every tier earned. Every badge verified.</p>
+  </div>
+</div>
+
+<div class="container" style="padding-top:3rem; padding-bottom:4rem;">
+
+  <!-- Search + Filter -->
+  <div class="search-row">
+    <input type="text" class="form-input" id="searchInput" placeholder="Search makers by name or skill..." oninput="filterMakers()">
+  </div>
+  <div class="filter-row">
+    <button class="filter-chip active" onclick="setTier('all', this)">All Tiers</button>
+    <button class="filter-chip" onclick="setTier(0, this)">Curious</button>
+    <button class="filter-chip" onclick="setTier(1, this)">Tinkerer</button>
+    <button class="filter-chip" onclick="setTier(2, this)">Builder</button>
+    <button class="filter-chip" onclick="setTier(3, this)">Maker</button>
+    <button class="filter-chip" onclick="setTier(4, this)">Innovator</button>
+    <button class="filter-chip" onclick="setTier(5, this)">Lab Pro</button>
+  </div>
+
+  <div class="grid-4" id="makersGrid">
+    <div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div class="modal-overlay hidden" id="profileModal">
+  <div class="modal-box profile-modal">
+    <div class="modal-header">
+      <span class="mono text-xs">// MAKER_PROFILE</span>
+      <button class="modal-close" onclick="closeProfile()">✕</button>
+    </div>
+    <div class="modal-body" id="profileContent">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer" id="mainFooter"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script>
+const TIERS = ['Curious','Tinkerer','Builder','Maker','Innovator','Lab Pro'];
+const TIER_BADGE = ['badge-grey','badge-orange','badge-indigo','badge-teal','badge-orange','badge-green'];
+
+let allMakers = [];
+let currentTier = 'all';
+
+onReady(async () => {
+  await renderNav('makers.html');
+  renderFooter();
+  const { data } = await db.from('maker_profiles').select('*, maker_credentials(id, title, credential_type, issued_at)').eq('is_public', true).order('tier_level', { ascending: false });
+  allMakers = data || [];
+  renderMakers();
+});
+
+function setTier(t, btn) {
+  currentTier = t;
+  $$('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderMakers();
+}
+
+function filterMakers() { renderMakers(); }
+
+function renderMakers() {
+  const q = $('searchInput').value.toLowerCase();
+  let list = allMakers;
+  if (currentTier !== 'all') list = list.filter(m => m.tier_level === currentTier);
+  if (q) list = list.filter(m => (m.full_name||'').toLowerCase().includes(q) || (m.bio||'').toLowerCase().includes(q) || (m.skills||'').toLowerCase().includes(q));
+
+  if (list.length === 0) {
+    $('makersGrid').innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">👤</div>
+      <h3>No makers found</h3>
+      <p>Try a different search or tier filter.</p>
+    </div>`;
+    return;
+  }
+
+  $('makersGrid').innerHTML = list.map(m => {
+    const tier = m.tier_level ?? 0;
+    const creds = (m.maker_credentials || []).length;
+    return `
+      <div class="maker-card" onclick="openProfile('${m.id}')">
+        <div class="flex-between">
+          <div class="avatar">${getInitials(m.full_name)}</div>
+          <span class="badge ${TIER_BADGE[tier]}">${TIERS[tier]}</span>
+        </div>
+        <div class="mc-name">${m.full_name || 'Maker'}</div>
+        <div class="mc-bio">${truncate(m.bio || 'Param Makersadda member.', 80)}</div>
+        ${m.skills ? `<div class="tags mb-2">${m.skills.split(',').slice(0,3).map(s=>`<span class="tag">${s.trim()}</span>`).join('')}</div>` : ''}
+        <div class="mc-meta">${creds} credential${creds!==1?'s':''} · Bengaluru</div>
+      </div>`;
+  }).join('');
+}
+
+async function openProfile(profileId) {
+  $('profileModal').classList.remove('hidden');
+  $('profileContent').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+  const { data: m } = await db.from('maker_profiles')
+    .select('*, maker_credentials(*), project_members(projects(title, status))')
+    .eq('id', profileId).single();
+
+  if (!m) { $('profileContent').innerHTML = '<div class="p-4 text-grey">Profile not found.</div>'; return; }
+
+  const tier  = m.tier_level ?? 0;
+  const creds = m.maker_credentials || [];
+  const projs = (m.project_members || []).map(pm => pm.projects).filter(Boolean);
+
+  $('profileContent').innerHTML = `
+    <div class="profile-hero">
+      <div class="avatar avatar-lg">${getInitials(m.full_name)}</div>
+      <div class="profile-info">
+        <div class="profile-name">${m.full_name || 'Maker'}</div>
+        <div class="profile-handle">@${m.slug || 'maker'}</div>
+        <span class="badge ${TIER_BADGE[tier]}">${TIERS[tier]}</span>
+        <div class="profile-bio mt-2">${m.bio || 'Param Makersadda member.'}</div>
+      </div>
+    </div>
+    <div class="profile-sections">
+      ${m.skills ? `
+        <div class="profile-section">
+          <h4>Skills</h4>
+          <div class="tags">${m.skills.split(',').map(s=>`<span class="tag">${s.trim()}</span>`).join('')}</div>
+        </div>` : ''}
+      ${creds.length > 0 ? `
+        <div class="profile-section">
+          <h4>Credentials (${creds.length})</h4>
+          <div class="cred-grid">
+            ${creds.map(c=>`
+              <div class="cred-mini">
+                <div class="cm-icon">🏅</div>
+                <div>
+                  <div class="cm-info">${c.title || c.credential_type}</div>
+                  <div class="text-xs text-grey">${formatDate(c.issued_at)}</div>
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>` : ''}
+      ${projs.length > 0 ? `
+        <div class="profile-section">
+          <h4>Projects</h4>
+          <div class="flex-col gap-sm">
+            ${projs.map(p=>`
+              <div style="display:flex; align-items:center; gap:.75rem; padding:.6rem 0; border-bottom:1px solid var(--grey);">
+                ${statusBadge(p.status)}
+                <span class="text-sm bold">${p.title}</span>
+              </div>`).join('')}
+          </div>
+        </div>` : ''}
+      <div class="profile-section">
+        <h4>Joined</h4>
+        <span class="mono text-xs text-grey">${formatDate(m.created_at)}</span>
+      </div>
+    </div>`;
+}
+
+function closeProfile() { $('profileModal').classList.add('hidden'); }
+</script>
+</body>
+</html>

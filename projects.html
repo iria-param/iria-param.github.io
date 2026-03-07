@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects — Param Makersadda</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .project-card { border: 2px solid var(--ink); box-shadow: var(--shadow); padding: 1.5rem; transition: transform 0.15s, box-shadow 0.15s; background: var(--paper); }
+    .project-card:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
+    .project-card .pc-title { font-weight: 800; font-size: 1.05rem; margin: 0.75rem 0 0.4rem; }
+    .project-card .pc-desc  { font-size: 0.82rem; color: var(--grey-dark); margin-bottom: 1rem; line-height: 1.6; }
+    .project-card .pc-meta  { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: 0.75rem; color: var(--grey-dark); font-family: var(--font-mono); padding-top: 1rem; border-top: 1px solid var(--grey); }
+
+    .propose-banner { background: var(--orange); border: 2px solid var(--ink); box-shadow: var(--shadow-lg); padding: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 2.5rem; }
+    .propose-banner h3 { color: #fff; margin-bottom: 0.25rem; }
+    .propose-banner p  { color: rgba(255,255,255,0.75); font-size: 0.875rem; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+    .modal-box { background: var(--paper); border: 2px solid var(--ink); box-shadow: var(--shadow-lg); width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { background: var(--ink); color: var(--paper); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--orange); }
+    .modal-body { padding: 2rem 1.5rem; }
+    .modal-close { background: none; border: none; color: var(--paper); font-size: 1.4rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<nav class="nav" id="mainNav"></nav>
+
+<div style="background:var(--ink); color:var(--paper); border-bottom:3px solid var(--orange);">
+  <div class="container" style="padding:3rem 1.5rem;">
+    <p class="mono text-xs mb-2" style="opacity:0.45;">// Propose · Build · Showcase</p>
+    <h1 style="font-size:clamp(1.75rem,4vw,3rem);">Maker <span style="color:var(--orange);">Projects</span></h1>
+    <p style="opacity:0.7; margin-top:0.75rem; max-width:480px;">Propose ideas, get mentor approval, form teams, and build real things. Every completion earns a verified credential.</p>
+  </div>
+</div>
+
+<div class="container" style="padding-top:3rem; padding-bottom:4rem;">
+
+  <div class="propose-banner">
+    <div>
+      <h3>Got an idea?</h3>
+      <p>Propose your project and get connected with a mentor.</p>
+    </div>
+    <button class="btn btn-dark btn-lg" onclick="openProposeModal()">Propose a Project →</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row" id="filterRow">
+    <button class="filter-chip active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-chip" onclick="setFilter('open', this)">Open</button>
+    <button class="filter-chip" onclick="setFilter('active', this)">In Progress</button>
+    <button class="filter-chip" onclick="setFilter('completed', this)">Completed</button>
+    <button class="filter-chip" onclick="setFilter('mine', this)">Mine</button>
+  </div>
+
+  <div id="projectsGrid" class="grid-3">
+    <div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- Propose Modal -->
+<div class="modal-overlay hidden" id="proposeModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="mono text-xs">// NEW_PROJECT</span>
+      <button class="modal-close" onclick="closeProposeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="proposeAlert" class="alert hidden"></div>
+      <form id="proposeForm" onsubmit="handlePropose(event)">
+        <div class="form-group">
+          <label class="form-label form-required">Project Title</label>
+          <input type="text" id="pTitle" class="form-input" placeholder="e.g. Solar Water Pump Controller" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label form-required">Description</label>
+          <textarea id="pDesc" class="form-textarea" placeholder="What problem does this solve? What will you build?" required></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tier</label>
+            <select id="pTier" class="form-select">
+              <option value="T2">T2 — Problem Solving</option>
+              <option value="T3">T3 — Open Innovation</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Team Size</label>
+            <select id="pTeam" class="form-select">
+              <option value="1">Solo (1)</option>
+              <option value="2">2 members</option>
+              <option value="3" selected>3 members</option>
+              <option value="4">4 members</option>
+              <option value="5">5 members</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Skills Needed</label>
+          <input type="text" id="pSkills" class="form-input" placeholder="e.g. Electronics, Python, CAD">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="proposeBtn">Submit Proposal →</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<footer class="footer" id="mainFooter"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script>
+let allProjects = [];
+let currentUser = null;
+let currentFilter = 'all';
+
+const STATUS_COLOR = { open:'badge-teal', active:'badge-indigo', completed:'badge-green', pending:'badge-amber', rejected:'badge-red' };
+
+onReady(async () => {
+  await renderNav('projects.html');
+  renderFooter();
+  currentUser = await Auth.getUser();
+  await loadProjects();
+});
+
+async function loadProjects() {
+  const { data, error } = await db.from('projects').select('*, project_members(user_id, role)').order('created_at', { ascending: false });
+  allProjects = data || [];
+  renderProjects();
+}
+
+function renderProjects() {
+  let filtered = allProjects;
+  if (currentFilter === 'mine' && currentUser) {
+    filtered = allProjects.filter(p => (p.project_members || []).some(m => m.user_id === currentUser.id));
+  } else if (currentFilter !== 'all') {
+    filtered = allProjects.filter(p => p.status === currentFilter);
+  }
+
+  if (filtered.length === 0) {
+    $('projectsGrid').innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">🔧</div>
+      <h3>No projects found</h3>
+      <p>${currentFilter === 'mine' ? 'You haven\'t joined any projects yet.' : 'No projects in this category yet.'}</p>
+      <button class="btn btn-primary btn-sm" onclick="openProposeModal()">Propose a Project →</button>
+    </div>`;
+    return;
+  }
+
+  $('projectsGrid').innerHTML = filtered.map(p => {
+    const members = p.project_members || [];
+    const isOwner = currentUser && members.some(m => m.user_id === currentUser.id && m.role === 'lead');
+    return `
+      <div class="project-card">
+        <div class="flex-between" style="flex-wrap:wrap; gap:0.4rem;">
+          <span class="badge ${STATUS_COLOR[p.status] || 'badge-grey'}">${p.status || 'draft'}</span>
+          <span class="badge badge-dark">${p.tier || 'T2'}</span>
+          ${isOwner ? '<span class="badge badge-orange">My Project</span>' : ''}
+        </div>
+        <div class="pc-title">${p.title}</div>
+        <div class="pc-desc">${truncate(p.description || '', 120)}</div>
+        ${p.skills_needed ? `<div class="tags mb-3">${(p.skills_needed||'').split(',').map(s=>`<span class="tag">${s.trim()}</span>`).join('')}</div>` : ''}
+        <div class="pc-meta">
+          <span>👥 ${members.length}/${p.max_team_size || 3}</span>
+          <span>·</span>
+          <span>${formatDate(p.created_at)}</span>
+          ${p.status === 'open' && currentUser ? `<button class="btn btn-sm btn-teal ml-auto" onclick="joinProject('${p.id}')">Join →</button>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  $$('#filterRow .filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderProjects();
+}
+
+function openProposeModal() {
+  if (!currentUser) { window.location.href = 'auth.html?tab=login'; return; }
+  $('proposeModal').classList.remove('hidden');
+}
+function closeProposeModal() { $('proposeModal').classList.add('hidden'); }
+
+async function handlePropose(e) {
+  e.preventDefault();
+  const btn = $('proposeBtn');
+  btnLoading(btn, true, 'Submit Proposal →');
+  const { error } = await db.from('projects').insert({
+    title: $('pTitle').value.trim(),
+    description: $('pDesc').value.trim(),
+    tier: $('pTier').value,
+    max_team_size: parseInt($('pTeam').value),
+    skills_needed: $('pSkills').value.trim(),
+    status: 'pending',
+    created_by: currentUser.id,
+  });
+  if (error) { showAlert('proposeAlert', error.message, 'error'); btnLoading(btn, false, 'Submit Proposal →'); }
+  else { closeProposeModal(); await loadProjects(); }
+}
+
+async function joinProject(projectId) {
+  if (!currentUser) { window.location.href = 'auth.html'; return; }
+  const { error } = await db.from('project_members').insert({ project_id: projectId, user_id: currentUser.id, role: 'member' });
+  if (!error) await loadProjects();
+  else alert(error.message);
+}
+</script>
+</body>
+</html>

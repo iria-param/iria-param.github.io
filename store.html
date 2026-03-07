@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store — Param Makersadda</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .product-card { border: 2px solid var(--ink); box-shadow: var(--shadow); overflow: hidden; background: var(--paper); transition: transform 0.15s, box-shadow 0.15s; }
+    .product-card:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
+    .product-img { height: 180px; background: var(--grey); display: flex; align-items: center; justify-content: center; font-size: 3rem; border-bottom: 2px solid var(--ink); position: relative; }
+    .product-img .gated-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 0.5rem; }
+    .product-body { padding: 1.25rem; }
+    .product-name { font-weight: 800; font-size: 0.95rem; margin-bottom: 0.3rem; }
+    .product-desc { font-size: 0.8rem; color: var(--grey-dark); margin-bottom: 0.75rem; line-height: 1.55; }
+    .product-price { font-weight: 800; font-size: 1.1rem; font-family: var(--font-mono); }
+    .product-footer { border-top: 2px solid var(--ink); padding: 0.75rem 1.25rem; display: flex; align-items: center; justify-content: space-between; background: var(--paper); }
+
+    .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--orange); border-top: 3px solid var(--ink); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; z-index: 100; transform: translateY(100%); transition: transform 0.3s; }
+    .cart-bar.visible { transform: translateY(0); }
+    .cart-bar p { color: #fff; font-weight: 700; }
+
+    /* Sample products for demo */
+    .sample-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5rem; }
+    @media(max-width:1024px) { .sample-grid { grid-template-columns: repeat(2,1fr); } }
+    @media(max-width:600px)  { .sample-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<nav class="nav" id="mainNav"></nav>
+
+<div style="background:var(--ink); color:var(--paper); border-bottom:3px solid var(--orange);">
+  <div class="container" style="padding:3rem 1.5rem;">
+    <div class="flex-between" style="flex-wrap:wrap; gap:1rem;">
+      <div>
+        <p class="mono text-xs mb-2" style="opacity:0.45;">// Merch · Kits · Drops</p>
+        <h1 style="font-size:clamp(1.75rem,4vw,3rem);">Adda <span style="color:var(--orange);">Store</span></h1>
+        <p style="opacity:0.7; margin-top:0.75rem; max-width:460px;">Official merch, maker kits, event drops, and achievement-gated items for the Param community.</p>
+      </div>
+      <div>
+        <button class="btn btn-primary btn-lg" onclick="toggleCart()">
+          🛒 Cart (<span id="cartCount">0</span>)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container" style="padding-top:3rem; padding-bottom:5rem;">
+
+  <!-- Filters -->
+  <div class="filter-row">
+    <button class="filter-chip active" onclick="setCategory('all', this)">All</button>
+    <button class="filter-chip" onclick="setCategory('merch', this)">Merch</button>
+    <button class="filter-chip" onclick="setCategory('kit', this)">Maker Kits</button>
+    <button class="filter-chip" onclick="setCategory('event-drop', this)">Event Drops</button>
+    <button class="filter-chip" onclick="setCategory('achievement', this)">Achievement-Gated</button>
+  </div>
+
+  <div id="storeGrid" class="sample-grid">
+    <div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- Cart Sidebar -->
+<div class="cart-bar" id="cartBar">
+  <div>
+    <p id="cartSummary">0 items in cart</p>
+    <p style="font-size:0.75rem; color:rgba(255,255,255,0.7); margin-top:0.2rem;" id="cartTotal">₹0</p>
+  </div>
+  <div style="display:flex;gap:.75rem;">
+    <button class="btn btn-dark btn-sm" onclick="toggleCart()">Close</button>
+    <button class="btn btn-sm" style="background:#fff;color:var(--ink);" onclick="checkout()">Checkout →</button>
+  </div>
+</div>
+
+<footer class="footer" id="mainFooter"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script>
+// Sample products (rendered until DB has products)
+const SAMPLE_PRODUCTS = [
+  { id:'p1', name:'MKRSADDA Tee', category:'merch', price:699, emoji:'👕', desc:'Official Param Makersadda t-shirt. 100% cotton. Bengaluru print.', gated:false, inStock:true },
+  { id:'p2', name:'Arduino Starter Kit', category:'kit', price:1299, emoji:'🔧', desc:'Everything you need to start with Arduino — sensors, LEDs, wires, breadboard.', gated:false, inStock:true },
+  { id:'p3', name:'Tech Tuesday Badge Pin', category:'event-drop', price:199, emoji:'📌', desc:'Limited edition enamel pin from Tech Tuesday series. Event attendees only.', gated:true, gateLabel:'T.TUE Attendee', inStock:true },
+  { id:'p4', name:'Laser Cutter Tote Bag', category:'merch', price:499, emoji:'🛍️', desc:'Laser-cut acrylic panel design tote bag. Made in the lab.', gated:false, inStock:true },
+  { id:'p5', name:'IoT Explorer Kit', category:'kit', price:2499, emoji:'📡', desc:'ESP32, sensors, OLED display, and full project guide. For T2 makers.', gated:true, gateLabel:'Tinkerer+', inStock:true },
+  { id:'p6', name:'Demo Day Hoodie', category:'event-drop', price:1199, emoji:'🏆', desc:'Exclusive hoodie for Demo Day 2025 participants. Limited run of 50.', gated:true, gateLabel:'Demo Day 2025', inStock:false },
+  { id:'p7', name:'Maker Certificate Frame', category:'achievement', price:399, emoji:'🖼️', desc:'Laser-engraved wooden frame for your Param certificate. Handcrafted.', gated:true, gateLabel:'Verified Maker', inStock:true },
+  { id:'p8', name:'PCB Design Kit', category:'kit', price:899, emoji:'🔌', desc:'Components + guide to design and etch your first PCB in the lab.', gated:false, inStock:true },
+];
+
+let cart = [];
+let currentCategory = 'all';
+let currentUser = null;
+let userTier = 0;
+
+onReady(async () => {
+  await renderNav('store.html');
+  renderFooter();
+  currentUser = await Auth.getUser();
+  if (currentUser) {
+    const { data } = await db.from('maker_profiles').select('tier_level').eq('user_id', currentUser.id).single();
+    userTier = data?.tier_level ?? 0;
+  }
+
+  // Try DB first, fall back to samples
+  const { data: dbProducts } = await db.from('store_products').select('*').eq('is_active', true);
+  const products = (dbProducts && dbProducts.length > 0) ? dbProducts : SAMPLE_PRODUCTS;
+  window._products = products;
+  renderStore(products);
+});
+
+function setCategory(cat, btn) {
+  currentCategory = cat;
+  $$('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  const products = cat === 'all' ? window._products : window._products.filter(p => p.category === cat);
+  renderStore(products);
+}
+
+function renderStore(products) {
+  if (products.length === 0) {
+    $('storeGrid').innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">🛍️</div><h3>No products found</h3><p>Check back soon for new drops.</p>
+    </div>`;
+    return;
+  }
+
+  $('storeGrid').innerHTML = products.map(p => {
+    const canBuy = !p.gated || currentUser; // simplified gating check
+    return `
+      <div class="product-card">
+        <div class="product-img">
+          ${p.emoji || '📦'}
+          ${p.gated && !currentUser ? `
+            <div class="gated-overlay">
+              <span style="font-size:1.5rem;">🔒</span>
+              <span class="badge badge-orange">${p.gateLabel || 'Gated'}</span>
+            </div>` : ''}
+        </div>
+        <div class="product-body">
+          <div class="flex-between mb-1">
+            <span class="badge badge-grey">${categoryLabel(p.category)}</span>
+            ${p.gated ? `<span class="badge badge-orange">${p.gateLabel || 'Gated'}</span>` : ''}
+          </div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-desc">${p.desc || ''}</div>
+          <div class="product-price">₹${fmtNum(p.price)}</div>
+        </div>
+        <div class="product-footer">
+          ${p.inStock === false
+            ? `<span class="badge badge-grey">Out of Stock</span>`
+            : canBuy
+            ? `<button class="btn btn-sm btn-primary" onclick="addToCart('${p.id}')">Add to Cart →</button>`
+            : `<a href="auth.html" class="btn btn-sm btn-dark">Login to Buy →</a>`
+          }
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function categoryLabel(c) {
+  const map = { merch:'Merch', kit:'Kit', 'event-drop':'Event Drop', achievement:'Achievement' };
+  return map[c] || c;
+}
+
+function addToCart(productId) {
+  if (!currentUser) { window.location.href = 'auth.html'; return; }
+  const p = window._products.find(p => p.id === productId);
+  if (!p) return;
+  const existing = cart.find(c => c.id === productId);
+  if (existing) existing.qty++;
+  else cart.push({ ...p, qty: 1 });
+  updateCart();
+  showCartBar();
+}
+
+function updateCart() {
+  const count = cart.reduce((s, c) => s + c.qty, 0);
+  const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+  $('cartCount').textContent = count;
+  $('cartSummary').textContent = `${count} item${count !== 1 ? 's' : ''} in cart`;
+  $('cartTotal').textContent = `₹${fmtNum(total)}`;
+}
+
+let cartVisible = false;
+function toggleCart() {
+  cartVisible = !cartVisible;
+  $('cartBar').classList.toggle('visible', cartVisible);
+}
+function showCartBar() {
+  cartVisible = true;
+  $('cartBar').classList.add('visible');
+}
+
+function checkout() {
+  if (cart.length === 0) { alert('Your cart is empty.'); return; }
+  alert('Checkout flow coming soon! Your cart has been saved.');
+}
+</script>
+</body>
+</html>

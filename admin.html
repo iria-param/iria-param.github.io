@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Param Makersadda</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .admin-stat { border: 2px solid var(--ink); padding: 1.25rem; text-align: center; }
+    .admin-stat .as-num { font-size: 2rem; font-weight: 800; color: var(--orange); line-height: 1; }
+    .admin-stat .as-lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grey-dark); margin-top: 0.35rem; font-family: var(--font-mono); }
+
+    .queue-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--grey); }
+    .queue-item:last-child { border-bottom: none; }
+    .queue-item .qi-info { flex: 1; }
+    .queue-item .qi-name { font-weight: 700; font-size: 0.9rem; }
+    .queue-item .qi-meta { font-size: 0.75rem; color: var(--grey-dark); font-family: var(--font-mono); }
+    .queue-item .qi-actions { display: flex; gap: 0.5rem; }
+
+    .equip-row { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--grey); }
+    .equip-row:last-child { border-bottom: none; }
+    .equip-row .eq-name { flex: 1; font-weight: 700; font-size: 0.875rem; }
+    .equip-row .eq-status { font-size: 0.75rem; }
+
+    .admin-sidebar-nav a { display: block; padding: 0.65rem 1.5rem; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; transition: background 0.12s; }
+    .admin-sidebar-nav a:hover { background: rgba(249,87,0,0.18); }
+    .admin-sidebar-nav a.active { background: var(--orange); color: #fff; }
+    .admin-sidebar-nav .nav-group-label { padding: 1.25rem 1.5rem 0.4rem; font-size: 0.62rem; opacity: 0.35; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    .section-card { border: 2px solid var(--ink); box-shadow: var(--shadow); margin-bottom: 2rem; }
+    .section-card .sc-head { background: var(--ink); color: var(--paper); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; }
+    .section-card .sc-head h4 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--font-mono); }
+    .section-card .sc-body { padding: 0; }
+  </style>
+</head>
+<body>
+
+<nav class="nav" id="mainNav"></nav>
+
+<div class="sidebar-layout">
+  <!-- Admin Sidebar -->
+  <aside class="sidebar">
+    <div style="padding: 1.5rem; border-bottom: 1px solid #1a1a1a; margin-bottom: 0.5rem;">
+      <div class="badge badge-orange mono mb-2">Admin Panel</div>
+      <div style="font-size:0.8rem; opacity:0.45; font-family:var(--font-mono);">Param Makersadda</div>
+    </div>
+    <nav class="admin-sidebar-nav">
+      <div class="nav-group-label">Overview</div>
+      <a href="#overview" class="active" onclick="showSection('overview',this)">Dashboard</a>
+      <div class="nav-group-label">Operations</div>
+      <a href="#verifications" onclick="showSection('verifications',this)">Verifications</a>
+      <a href="#projects" onclick="showSection('projects-admin',this)">Projects</a>
+      <a href="#events-admin" onclick="showSection('events-admin',this)">Events</a>
+      <div class="nav-group-label">Lab</div>
+      <a href="#equipment" onclick="showSection('equipment',this)">Equipment</a>
+      <a href="#inventory" onclick="showSection('inventory',this)">Inventory</a>
+      <div class="nav-group-label">More</div>
+      <a href="#makers-admin" onclick="showSection('makers-admin',this)">All Makers</a>
+      <a href="index.html">← Back to Site</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content" id="adminMain">
+    <div class="loading"><div class="spinner"></div></div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script>
+let adminUser = null;
+
+const SECTIONS = {
+  overview:       renderOverview,
+  verifications:  renderVerifications,
+  'projects-admin': renderProjectsAdmin,
+  'events-admin': renderEventsAdmin,
+  equipment:      renderEquipment,
+  inventory:      renderInventory,
+  'makers-admin': renderMakersAdmin,
+};
+
+onReady(async () => {
+  await renderNav('admin.html');
+  adminUser = await Auth.requireAuth('auth.html');
+  if (!adminUser) return;
+
+  // Check admin role
+  const { data: profile } = await db.from('maker_profiles').select('role').eq('user_id', adminUser.id).single();
+  if (profile?.role !== 'admin') {
+    $('adminMain').innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🚫</div>
+      <h3>Access Denied</h3>
+      <p>You don't have admin privileges.</p>
+      <a href="dashboard.html" class="btn btn-primary btn-sm">Go to Dashboard</a>
+    </div>`;
+    return;
+  }
+
+  renderOverview();
+});
+
+function showSection(key, el) {
+  $$('.admin-sidebar-nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  const fn = SECTIONS[key];
+  if (fn) fn();
+}
+
+async function renderOverview() {
+  $('adminMain').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+  const [mkRes, prRes, evRes, crRes] = await Promise.all([
+    db.from('maker_profiles').select('id', { count: 'exact', head: true }),
+    db.from('projects').select('id', { count: 'exact', head: true }),
+    db.from('events').select('id', { count: 'exact', head: true }),
+    db.from('maker_credentials').select('id', { count: 'exact', head: true }),
+  ]);
+
+  const { data: pendingProjects } = await db.from('projects').select('id, title, created_at, tier, status').eq('status', 'pending').order('created_at', { ascending: false }).limit(5);
+  const { data: recentMakers } = await db.from('maker_profiles').select('full_name, tier_level, created_at').order('created_at', { ascending: false }).limit(5);
+
+  $('adminMain').innerHTML = `
+    <div class="page-header">
+      <div class="ph-label">// Admin Overview</div>
+      <h1>Makersadda HQ</h1>
+    </div>
+
+    <div class="grid-4 mb-4" style="gap:0; border:2px solid var(--ink);">
+      <div class="admin-stat" style="border-right:2px solid var(--ink);">
+        <div class="as-num">${mkRes.count || 0}</div><div class="as-lbl">Makers</div>
+      </div>
+      <div class="admin-stat" style="border-right:2px solid var(--ink);">
+        <div class="as-num">${prRes.count || 0}</div><div class="as-lbl">Projects</div>
+      </div>
+      <div class="admin-stat" style="border-right:2px solid var(--ink);">
+        <div class="as-num">${evRes.count || 0}</div><div class="as-lbl">Events</div>
+      </div>
+      <div class="admin-stat">
+        <div class="as-num">${crRes.count || 0}</div><div class="as-lbl">Credentials</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="section-card">
+        <div class="sc-head">
+          <h4>Pending Approvals</h4>
+          <span class="badge badge-orange">${(pendingProjects||[]).length}</span>
+        </div>
+        <div class="sc-body">
+          ${(pendingProjects||[]).length === 0
+            ? '<div class="p-3 text-grey text-sm text-center">No pending approvals.</div>'
+            : (pendingProjects||[]).map(p => `
+              <div class="queue-item">
+                <div class="qi-info">
+                  <div class="qi-name">${p.title}</div>
+                  <div class="qi-meta">${p.tier} · ${formatDate(p.created_at)}</div>
+                </div>
+                <div class="qi-actions">
+                  <button class="btn btn-sm btn-teal" onclick="approveProject('${p.id}')">✓ Approve</button>
+                  <button class="btn btn-sm btn-red" onclick="rejectProject('${p.id}')">✕</button>
+                </div>
+              </div>`).join('')
+          }
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="sc-head"><h4>Recent Makers</h4></div>
+        <div class="sc-body">
+          ${(recentMakers||[]).length === 0
+            ? '<div class="p-3 text-grey text-sm text-center">No makers yet.</div>'
+            : (recentMakers||[]).map(m => {
+                const TIERS = ['Curious','Tinkerer','Builder','Maker','Innovator','Lab Pro'];
+                const TBADGE = ['badge-grey','badge-orange','badge-indigo','badge-teal','badge-orange','badge-green'];
+                const t = m.tier_level ?? 0;
+                return `
+                  <div class="queue-item">
+                    <div class="avatar" style="width:36px;height:36px;font-size:.8rem;">${getInitials(m.full_name)}</div>
+                    <div class="qi-info">
+                      <div class="qi-name">${m.full_name || 'Maker'}</div>
+                      <div class="qi-meta">${formatDate(m.created_at)}</div>
+                    </div>
+                    <span class="badge ${TBADGE[t]}">${TIERS[t]}</span>
+                  </div>`;
+              }).join('')
+          }
+        </div>
+      </div>
+    </div>`;
+}
+
+async function renderVerifications() {
+  $('adminMain').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const { data: projects } = await db.from('projects').select('*, maker_profiles!created_by(full_name)').in('status', ['pending','active']).order('created_at', { ascending: false });
+  const list = projects || [];
+  $('adminMain').innerHTML = `
+    <div class="page-header"><div class="ph-label">// Operations</div><h1>Project Verifications</h1></div>
+    <div class="section-card">
+      <div class="sc-head"><h4>All Submissions (${list.length})</h4></div>
+      <div class="sc-body">
+        ${list.length === 0 ? '<div class="p-4 text-center text-grey">No submissions.</div>'
+          : list.map(p => `
+            <div class="queue-item">
+              <div class="qi-info">
+                <div class="qi-name">${p.title}</div>
+                <div class="qi-meta">${p.tier} · ${p.maker_profiles?.full_name || 'Unknown'} · ${formatDate(p.created_at)}</div>
+              </div>
+              ${statusBadge(p.status)}
+              <div class="qi-actions">
+                ${p.status === 'pending' ? `
+                  <button class="btn btn-sm btn-teal" onclick="approveProject('${p.id}')">Approve</button>
+                  <button class="btn btn-sm btn-red" onclick="rejectProject('${p.id}')">Reject</button>` : ''}
+                ${p.status === 'active' ? `
+                  <button class="btn btn-sm btn-indigo" onclick="completeProject('${p.id}')">Mark Complete</button>` : ''}
+              </div>
+            </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+async function renderProjectsAdmin() {
+  $('adminMain').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const { data } = await db.from('projects').select('*').order('created_at', { ascending: false });
+  const list = data || [];
+  $('adminMain').innerHTML = `
+    <div class="page-header"><div class="ph-label">// Lab</div><h1>All Projects (${list.length})</h1></div>
+    <table class="table">
+      <thead><tr><th>Title</th><th>Tier</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${list.map(p => `<tr>
+          <td class="bold">${p.title}</td>
+          <td>${renderBadge(p.tier||'T2','grey')}</td>
+          <td>${statusBadge(p.status)}</td>
+          <td class="mono text-xs">${formatDate(p.created_at)}</td>
+          <td>${p.status==='pending' ? `<button class="btn btn-sm btn-teal" onclick="approveProject('${p.id}')">Approve</button>` : ''}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function renderEventsAdmin() {
+  $('adminMain').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const { data } = await db.from('events').select('*, event_registrations(id)', { count: 'exact' }).order('starts_at', { ascending: false });
+  const list = data || [];
+  $('adminMain').innerHTML = `
+    <div class="page-header flex-between" style="align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+      <div><div class="ph-label">// Lab</div><h1>Events</h1></div>
+      <button class="btn btn-primary btn-sm" onclick="createEvent()">+ New Event</button>
+    </div>
+    <table class="table">
+      <thead><tr><th>Title</th><th>Type</th><th>Date</th><th>Registrations</th><th>Badge</th></tr></thead>
+      <tbody>
+        ${list.map(ev => `<tr>
+          <td class="bold">${ev.title}</td>
+          <td>${renderBadge(ev.type||'Event','indigo')}</td>
+          <td class="mono text-xs">${formatDate(ev.starts_at)}</td>
+          <td>${(ev.event_registrations||[]).length}</td>
+          <td>${ev.badge_on_attend ? renderBadge('Auto','teal') : renderBadge('No','grey')}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function renderEquipment() {
+  $('adminMain').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const { data } = await db.from('equipment').select('*').order('name');
+  const list = data || [];
+  $('adminMain').innerHTML = `
+    <div class="page-header flex-between" style="align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+      <div><div class="ph-label">// Lab</div><h1>Equipment (${list.length})</h1></div>
+      <button class="btn btn-primary btn-sm">+ Add Equipment</button>
+    </div>
+    <div class="section-card">
+      <div class="sc-head"><h4>Lab Equipment</h4></div>
+      <div class="sc-body">
+        ${list.length === 0
+          ? '<div class="p-4 text-center text-grey">No equipment added yet.</div>'
+          : list.map(eq => `
+            <div class="equip-row">
+              <div class="eq-name">${eq.name}</div>
+              <span class="badge ${eq.status==='available'?'badge-teal':eq.status==='booked'?'badge-indigo':'badge-red'}">${eq.status||'unknown'}</span>
+              ${eq.requires_induction ? '<span class="badge badge-orange">Induction Required</span>' : ''}
+              <span class="mono text-xs text-grey">${eq.category||''}</span>
+            </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+async function renderInventory() {
+  $('adminMain').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const { data } = await db.from('inventory_items').select('*').order('name');
+  const list = data || [];
+  $('adminMain').innerHTML = `
+    <div class="page-header"><div class="ph-label">// Lab</div><h1>Inventory (${list.length} items)</h1></div>
+    <table class="table">
+      <thead><tr><th>Item</th><th>Category</th><th>Stock</th><th>Unit</th><th>Status</th></tr></thead>
+      <tbody>
+        ${list.length === 0
+          ? '<tr><td colspan="5" class="text-center text-grey p-4">No inventory items.</td></tr>'
+          : list.map(item => `<tr>
+            <td class="bold">${item.name}</td>
+            <td>${item.category||'—'}</td>
+            <td class="mono">${item.quantity ?? '—'}</td>
+            <td>${item.unit||'—'}</td>
+            <td>${item.quantity > 5 ? renderBadge('OK','teal') : item.quantity > 0 ? renderBadge('Low','amber') : renderBadge('Out','red')}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function renderMakersAdmin() {
+  $('adminMain').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const TIERS  = ['Curious','Tinkerer','Builder','Maker','Innovator','Lab Pro'];
+  const TBADGE = ['badge-grey','badge-orange','badge-indigo','badge-teal','badge-orange','badge-green'];
+  const { data } = await db.from('maker_profiles').select('*').order('created_at', { ascending: false });
+  const list = data || [];
+  $('adminMain').innerHTML = `
+    <div class="page-header"><div class="ph-label">// Community</div><h1>All Makers (${list.length})</h1></div>
+    <table class="table">
+      <thead><tr><th>Name</th><th>Tier</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${list.map(m => {
+          const t = m.tier_level ?? 0;
+          return `<tr>
+            <td class="bold">${m.full_name||'—'}</td>
+            <td><span class="badge ${TBADGE[t]}">${TIERS[t]}</span></td>
+            <td>${renderBadge(m.role||'maker','grey')}</td>
+            <td class="mono text-xs">${formatDate(m.created_at)}</td>
+            <td>
+              <button class="btn btn-sm btn-ghost" onclick="upgradeTier('${m.id}', ${t})">Upgrade Tier</button>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+// Actions
+async function approveProject(id) {
+  await db.from('projects').update({ status: 'active' }).eq('id', id);
+  renderOverview();
+}
+async function rejectProject(id) {
+  await db.from('projects').update({ status: 'rejected' }).eq('id', id);
+  renderOverview();
+}
+async function completeProject(id) {
+  await db.from('projects').update({ status: 'completed' }).eq('id', id);
+  renderVerifications();
+}
+async function upgradeTier(profileId, currentTier) {
+  if (currentTier >= 5) { alert('Already at max tier.'); return; }
+  await db.from('maker_profiles').update({ tier_level: currentTier + 1 }).eq('id', profileId);
+  renderMakersAdmin();
+}
+function createEvent() {
+  alert('Event creation form coming soon!');
+}
+</script>
+</body>
+</html>

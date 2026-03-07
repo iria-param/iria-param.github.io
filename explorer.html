@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explorer Hub — Param Makersadda</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .tier-header { padding: 2rem; border: 2px solid var(--ink); box-shadow: var(--shadow); margin-bottom: 1.5rem; }
+    .tier-header.t1 { background: var(--paper); border-left: 5px solid var(--orange); }
+    .tier-header.t2 { background: var(--paper); border-left: 5px solid var(--indigo); }
+    .tier-header.t3 { background: var(--ink); color: var(--paper); border-left: 5px solid var(--teal); }
+    .tier-header .th-badge { margin-bottom: 0.75rem; }
+    .tier-header h2 { font-size: 1.35rem; margin-bottom: 0.4rem; }
+    .tier-header p  { font-size: 0.875rem; opacity: 0.7; }
+
+    .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 3rem; }
+    .module-card {
+      border: 2px solid var(--ink); padding: 1.5rem;
+      transition: transform 0.15s, box-shadow 0.15s; position: relative;
+    }
+    .module-card.unlocked { background: var(--paper); box-shadow: var(--shadow); cursor: pointer; }
+    .module-card.unlocked:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
+    .module-card.completed { background: #f0fdf4; border-color: var(--green); }
+    .module-card.locked { background: var(--grey-light); opacity: 0.55; }
+    .module-card .lock-icon { position: absolute; top: 1rem; right: 1rem; font-size: 1rem; }
+    .module-card .mc-num { font-family: var(--font-mono); font-size: 0.65rem; color: var(--grey-dark); margin-bottom: 0.5rem; }
+    .module-card h4 { margin-bottom: 0.35rem; }
+    .module-card p  { font-size: 0.8rem; color: var(--grey-dark); margin-bottom: 1rem; }
+    .module-card .mc-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+
+    .enroll-banner {
+      background: var(--orange); border: 2px solid var(--ink); box-shadow: var(--shadow);
+      padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
+    }
+    .enroll-banner.enrolled { background: var(--teal); }
+    .enroll-banner p { color: #fff; font-weight: 600; }
+
+    @media(max-width:768px) { .module-grid { grid-template-columns: 1fr; } }
+    @media(max-width:1024px) { .module-grid { grid-template-columns: repeat(2,1fr); } }
+  </style>
+</head>
+<body>
+
+<nav class="nav" id="mainNav"></nav>
+
+<div style="background:var(--ink); color:var(--paper); border-bottom:3px solid var(--orange);">
+  <div class="container" style="padding-top:3rem; padding-bottom:3rem;">
+    <p class="mono text-xs mb-2" style="opacity:0.45;">// Learn → Build → Grow</p>
+    <h1 style="font-size:clamp(1.75rem,4vw,3rem);">Explorer <span style="color:var(--orange);">Hub</span></h1>
+    <p style="opacity:0.7; margin-top:0.75rem; max-width:480px;">Three progressive tracks — start from fundamentals and advance to open innovation. Earn badges and certificates at every milestone.</p>
+  </div>
+</div>
+
+<div class="container" style="padding-top:3rem; padding-bottom:4rem;" id="explorerContent">
+  <div class="loading"><div class="spinner"></div></div>
+</div>
+
+<footer class="footer" id="mainFooter"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/nav.js"></script>
+<script>
+const TRACKS = [
+  { key:'T1', label:'T1 — Fundamentals', color:'t1', badge:'badge-orange',
+    desc:'Build your foundation. Hands-on modules covering electronics, fabrication, digital tools, and safety. Open to all.',
+    modules:[
+      {id:'t1-1', title:'Lab Safety & Induction', desc:'Workspace rules, equipment safety, emergency procedures.', duration:'2h', type:'Required'},
+      {id:'t1-2', title:'Electronics Basics', desc:'Ohm\'s law, breadboarding, reading schematics.', duration:'4h', type:'Hands-on'},
+      {id:'t1-3', title:'Digital Fabrication Intro', desc:'3D printing, laser cutting fundamentals.', duration:'3h', type:'Hands-on'},
+      {id:'t1-4', title:'Arduino Basics', desc:'Microcontroller programming, sensors, actuators.', duration:'5h', type:'Project'},
+      {id:'t1-5', title:'Design Thinking Workshop', desc:'Problem framing, ideation, rapid prototyping.', duration:'3h', type:'Workshop'},
+      {id:'t1-6', title:'T1 Capstone Project', desc:'Build a simple working prototype using T1 skills.', duration:'8h', type:'Capstone'},
+    ]
+  },
+  { key:'T2', label:'T2 — Problem Solving', color:'t2', badge:'badge-indigo',
+    desc:'Tackle real-world problems. Advanced fabrication, embedded systems, team projects, and maker methodology. Requires T1.',
+    modules:[
+      {id:'t2-1', title:'Advanced Electronics', desc:'PCB design, soldering, component selection.', duration:'6h', type:'Hands-on'},
+      {id:'t2-2', title:'Embedded Systems', desc:'Raspberry Pi, ESP32, IoT connectivity.', duration:'8h', type:'Hands-on'},
+      {id:'t2-3', title:'CAD & Fabrication', desc:'Fusion 360, CNC routing, advanced 3D printing.', duration:'6h', type:'Hands-on'},
+      {id:'t2-4', title:'Data & Sensors', desc:'Sensor arrays, data logging, basic ML.', duration:'5h', type:'Project'},
+      {id:'t2-5', title:'Project Management', desc:'Scoping, milestones, documentation, presentations.', duration:'3h', type:'Workshop'},
+      {id:'t2-6', title:'T2 Team Project', desc:'Solve a real problem with a team under mentorship.', duration:'20h', type:'Capstone'},
+    ]
+  },
+  { key:'T3', label:'T3 — Open Innovation', color:'t3', badge:'badge-teal',
+    desc:'Lead your own innovation. Propose original projects, work with the community, and showcase at Param Demo Day. Requires T2.',
+    modules:[
+      {id:'t3-1', title:'Innovation & IP Basics', desc:'Ideation frameworks, IP basics, grant writing.', duration:'4h', type:'Workshop'},
+      {id:'t3-2', title:'Advanced Fabrication Lab', desc:'Full lab access — CNC, metal work, advanced 3D.', duration:'10h', type:'Open Lab'},
+      {id:'t3-3', title:'Community & Collaboration', desc:'Working with external partners, open source.', duration:'3h', type:'Workshop'},
+      {id:'t3-4', title:'T3 Innovation Project', desc:'Propose, build, and validate an original innovation.', duration:'40h', type:'Capstone'},
+      {id:'t3-5', title:'Demo Day Showcase', desc:'Present to community, mentors, and guests.', duration:'4h', type:'Showcase'},
+    ]
+  },
+];
+
+onReady(async () => {
+  await renderNav('explorer.html');
+  renderFooter();
+
+  const user = await Auth.getUser();
+  let enrollments = [];
+  let completions = [];
+
+  if (user) {
+    const [eRes, cRes] = await Promise.all([
+      db.from('track_enrollments').select('*').eq('user_id', user.id),
+      db.from('module_completions').select('*').eq('user_id', user.id),
+    ]);
+    enrollments = eRes.data || [];
+    completions = cRes.data || [];
+  }
+
+  const enrolledTiers = enrollments.map(e => e.track_tier);
+  const completedIds  = completions.map(c => c.module_id);
+
+  let html = '';
+
+  TRACKS.forEach((track, ti) => {
+    const isEnrolled  = enrolledTiers.includes(track.key);
+    const prevDone    = ti === 0 || enrolledTiers.includes(TRACKS[ti-1].key);
+    const isLocked    = !prevDone && ti > 0;
+    const enrollment  = enrollments.find(e => e.track_tier === track.key);
+    const pct         = enrollment?.progress_pct ?? 0;
+
+    html += `
+      <div class="tier-header ${track.color}">
+        <div class="th-badge"><span class="badge ${track.badge}">${track.key}</span>${isLocked ? '<span class="badge badge-grey ml-auto" style="margin-left:.5rem;">Locked</span>' : ''}</div>
+        <div class="flex-between" style="flex-wrap:wrap; gap:1rem; align-items:flex-start;">
+          <div>
+            <h2>${track.label}</h2>
+            <p>${track.desc}</p>
+          </div>
+          <div style="min-width:200px;">
+            ${isEnrolled
+              ? `<div class="text-xs mono mb-1" style="opacity:0.7;">${pct}% Complete</div>
+                 <div class="progress mb-2"><div class="progress-bar ${track.color === 't2' ? 'indigo' : track.color === 't3' ? 'teal' : ''}" style="width:${pct}%"></div></div>
+                 <span class="badge badge-teal">Enrolled</span>`
+              : isLocked
+              ? `<span class="badge badge-grey">Complete ${TRACKS[ti-1].key} first</span>`
+              : user
+              ? `<button class="btn btn-sm ${ti===0?'btn-primary':ti===1?'btn-indigo':'btn-teal'}" onclick="enrollTrack('${track.key}')">Enroll in ${track.key} →</button>`
+              : `<a href="auth.html" class="btn btn-sm btn-primary">Login to Enroll →</a>`
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="module-grid">
+        ${track.modules.map(mod => {
+          const done   = completedIds.includes(mod.id);
+          const locked = isLocked || (!isEnrolled && !done);
+          const cls    = done ? 'completed' : locked ? 'locked' : 'unlocked';
+          return `
+            <div class="module-card ${cls}" onclick="${!locked ? `openModule('${mod.id}', '${mod.title}')` : ''}">
+              ${done   ? '<div class="lock-icon" style="color:var(--green);">✓</div>' : ''}
+              ${locked && !done ? '<div class="lock-icon">🔒</div>' : ''}
+              <div class="mc-num">${mod.id.toUpperCase()}</div>
+              <h4>${mod.title}</h4>
+              <p>${mod.desc}</p>
+              <div class="mc-meta">
+                <span class="badge badge-grey">${mod.duration}</span>
+                <span class="badge ${mod.type === 'Capstone' ? 'badge-orange' : mod.type === 'Workshop' ? 'badge-indigo' : 'badge-grey'}">${mod.type}</span>
+                ${done ? '<span class="badge badge-green">Done</span>' : ''}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+  });
+
+  $('explorerContent').innerHTML = html;
+});
+
+async function enrollTrack(tier) {
+  const user = await Auth.getUser();
+  if (!user) { window.location.href = 'auth.html'; return; }
+  const { error } = await db.from('track_enrollments').insert({ user_id: user.id, track_tier: tier, progress_pct: 0 });
+  if (!error) location.reload();
+  else alert('Error enrolling: ' + error.message);
+}
+
+function openModule(id, title) {
+  alert(`Opening module: ${title}\n\nModule content viewer coming soon!`);
+}
+</script>
+</body>
+</html>
