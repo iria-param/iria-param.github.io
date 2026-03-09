@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile — Param Makersadda</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .skill-row { display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;border-bottom:1px solid var(--grey);background:var(--paper); }
+    .skill-row:last-child{border-bottom:none;}
+    .skill-row .sk-name{flex:1;font-weight:700;font-size:.875rem;}
+    .skill-row .sk-meta{font-size:.72rem;font-family:var(--font-mono);color:var(--grey-dark);}
+    .section-box{border:2px solid var(--ink);box-shadow:var(--shadow);margin-bottom:2rem;}
+    .section-box .sb-head{background:var(--ink);color:var(--paper);padding:.85rem 1.25rem;border-bottom:3px solid var(--orange);display:flex;align-items:center;justify-content:space-between;}
+    .section-box .sb-head h4{font-size:.82rem;text-transform:uppercase;letter-spacing:.07em;font-family:var(--font-mono);}
+    .section-box .sb-body{padding:1.5rem;}
+  </style>
+</head>
+<body>
+<nav class="nav" id="mainNav"></nav>
+<div class="sidebar-layout">
+  <aside class="sidebar" id="mainSidebar"></aside>
+  <main class="main-content">
+    <div class="page-header">
+      <div class="ph-label">// Account</div>
+      <h1>Edit Profile</h1>
+    </div>
+    <div id="alertBox" class="alert hidden"></div>
+
+    <!-- Personal Info -->
+    <div class="section-box">
+      <div class="sb-head"><h4>👤 Personal Info</h4><span class="badge badge-orange">maker_profiles</span></div>
+      <div class="sb-body">
+        <form id="profileForm" onsubmit="saveProfile(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label form-required">Full Name</label>
+              <input type="text" id="fullName" class="form-input" placeholder="Arjun Kumar" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Public URL Slug</label>
+              <input type="text" id="slug" class="form-input" placeholder="arjun-kumar" pattern="[a-z0-9\-]+" title="Lowercase, numbers and hyphens only">
+              <span class="form-hint">makersadda.in/makers/<b id="slugPreview">your-slug</b></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bio</label>
+            <textarea id="bio" class="form-textarea" placeholder="Tell the maker community about yourself..." rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Aspirations</label>
+            <textarea id="aspirations" class="form-textarea" placeholder="What do you want to build, learn, or achieve?" rows="2"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">GitHub URL</label>
+              <input type="url" id="github" class="form-input" placeholder="https://github.com/username">
+            </div>
+            <div class="form-group">
+              <label class="form-label">LinkedIn URL</label>
+              <input type="url" id="linkedin" class="form-input" placeholder="https://linkedin.com/in/username">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Avatar URL</label>
+            <input type="url" id="avatar" class="form-input" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Profile Visibility</label>
+            <select id="isPublic" class="form-select">
+              <option value="true">Public — visible in Makers directory</option>
+              <option value="false">Private — only visible to you</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" id="saveProfileBtn">Save Profile →</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="section-box">
+      <div class="sb-head"><h4>🛠 My Skills</h4><span class="badge badge-indigo">user_skills</span></div>
+      <div class="sb-body">
+        <!-- Add skill form -->
+        <form id="skillForm" onsubmit="addSkill(event)" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.75rem;align-items:end;margin-bottom:1.5rem;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label form-required">Skill Name</label>
+            <input type="text" id="skillName" class="form-input" placeholder="e.g. Arduino, CAD, Python" required>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Domain</label>
+            <input type="text" id="skillDomain" class="form-input" placeholder="e.g. Electronics, Fabrication">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Source</label>
+            <select id="skillSource" class="form-select">
+              <option value="self">Self-declared</option>
+              <option value="platform">Platform-validated</option>
+              <option value="supervised">Supervised & Verified</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-indigo btn-sm" style="margin-bottom:1px;">+ Add</button>
+        </form>
+        <div id="skillsList" style="border:2px solid var(--ink);">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script><script src="js/utils.js"></script>
+<script src="js/auth.js"></script><script src="js/nav.js"></script><script src="js/sidebar.js"></script>
+<script>
+let currentUser, profileId;
+
+onReady(async()=>{
+  await renderNav('dashboard-profile.html');
+  currentUser = await Auth.requireAuth('auth.html');
+  if(!currentUser) return;
+
+  const {data:prof} = await db.from('maker_profiles').select('*').eq('user_id',currentUser.id).single();
+  renderSidebar('profile', prof, currentUser);
+
+  if(prof){
+    profileId = prof.id;
+    $('fullName').value    = prof.full_name||'';
+    $('slug').value        = prof.public_url_slug||'';
+    $('bio').value         = prof.bio||'';
+    $('aspirations').value = prof.aspirations||'';
+    $('github').value      = prof.github_url||'';
+    $('linkedin').value    = prof.linkedin_url||'';
+    $('avatar').value      = prof.avatar_url||'';
+    $('isPublic').value    = String(prof.is_public!==false);
+    updateSlugPreview();
+  }
+
+  $('slug').addEventListener('input', updateSlugPreview);
+  await loadSkills();
+});
+
+function updateSlugPreview(){
+  $('slugPreview').textContent = $('slug').value || 'your-slug';
+}
+
+async function saveProfile(e){
+  e.preventDefault();
+  const btn = $('saveProfileBtn');
+  btnLoading(btn, true, 'Save Profile →');
+  clearAlert('alertBox');
+
+  const payload = {
+    full_name:       $('fullName').value.trim(),
+    public_url_slug: $('slug').value.trim()||null,
+    bio:             $('bio').value.trim()||null,
+    aspirations:     $('aspirations').value.trim()||null,
+    github_url:      $('github').value.trim()||null,
+    linkedin_url:    $('linkedin').value.trim()||null,
+    avatar_url:      $('avatar').value.trim()||null,
+    is_public:       $('isPublic').value === 'true',
+  };
+
+  let error;
+  if(profileId){
+    ({error} = await db.from('maker_profiles').update(payload).eq('id', profileId));
+  } else {
+    ({error} = await db.from('maker_profiles').insert({...payload, user_id: currentUser.id}));
+  }
+
+  if(error){ showAlert('alertBox', error.message, 'error'); }
+  else { showAlert('alertBox', 'Profile saved successfully!', 'success'); }
+  btnLoading(btn, false, 'Save Profile →');
+}
+
+async function loadSkills(){
+  const {data:skills} = await db.from('user_skills').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+  const list = skills||[];
+  const SOURCE_BADGE = {self:'badge-grey', platform:'badge-indigo', supervised:'badge-teal'};
+  $('skillsList').innerHTML = list.length===0
+    ? `<div class="p-3 text-grey text-sm text-center">No skills added yet. Use the form above to add your first skill.</div>`
+    : list.map(s=>`
+        <div class="skill-row">
+          <div class="sk-name">${s.skill_name}</div>
+          <span class="sk-meta">${s.domain||'—'}</span>
+          <span class="badge ${SOURCE_BADGE[s.source]||'badge-grey'}">${s.source||'self'}</span>
+          <button class="btn btn-sm btn-ghost" onclick="deleteSkill('${s.id}')" style="color:var(--red);">✕</button>
+        </div>`).join('');
+}
+
+async function addSkill(e){
+  e.preventDefault();
+  const {error} = await db.from('user_skills').insert({
+    user_id: currentUser.id,
+    skill_name: $('skillName').value.trim(),
+    domain:     $('skillDomain').value.trim()||null,
+    source:     $('skillSource').value,
+  });
+  if(error){ showAlert('alertBox', error.message, 'error'); return; }
+  $('skillName').value = ''; $('skillDomain').value = '';
+  await loadSkills();
+}
+
+async function deleteSkill(id){
+  if(!confirm('Remove this skill?')) return;
+  await db.from('user_skills').delete().eq('id',id);
+  await loadSkills();
+}
+</script>
+</body>
+</html>
