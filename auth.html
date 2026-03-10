@@ -28,7 +28,7 @@
       background: var(--paper); border: 2px solid var(--ink); border-left: none; padding: 3rem 2.5rem;
     }
     .auth-brand { font-family: var(--font-mono); font-size: 0.72rem; color: var(--grey-dark); margin-bottom: 2rem; }
-    @media (max-width: 700px) {
+    @media (max-width: 480px) {
       .auth-wrap { grid-template-columns: 1fr; margin: 0; padding: 0; }
       .auth-left { display: none; }
       .auth-right { border-left: 2px solid var(--ink); padding: 2rem 1.5rem; min-height: 100vh; }
@@ -148,7 +148,9 @@
 <script src="js/auth.js"></script>
 <script>
   onReady(async () => {
-    await Auth.redirectIfAuthed('dashboard.html');
+    try {
+      await Auth.redirectIfAuthed('dashboard.html');
+    } catch (_) { /* stay on page if check fails */ }
     if (getParam('tab') === 'signup') switchTab('signup');
   });
 
@@ -166,9 +168,18 @@
     const btn = $('loginBtn');
     btnLoading(btn, true, 'Login →');
     clearAlert('authAlert');
-    const { error } = await Auth.signIn($('loginEmail').value.trim(), $('loginPassword').value);
-    if (error) { showAlert('authAlert', error.message, 'error'); btnLoading(btn, false, 'Login →'); }
-    else window.location.href = 'dashboard.html';
+    try {
+      const { error } = await Auth.signIn($('loginEmail').value.trim(), $('loginPassword').value);
+      if (error) {
+        showAlert('authAlert', error.message, 'error');
+        btnLoading(btn, false, 'Login →');
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    } catch (err) {
+      showAlert('authAlert', 'Something went wrong. Please try again.', 'error');
+      btnLoading(btn, false, 'Login →');
+    }
   }
 
   async function handleSignup(e) {
@@ -176,14 +187,25 @@
     const btn = $('signupBtn');
     btnLoading(btn, true, 'Create Account →');
     clearAlert('authAlert');
-    const { error } = await Auth.signUp(
-      $('signupEmail').value.trim(), $('signupPassword').value,
-      { full_name: `${$('signupFirst').value.trim()} ${$('signupLast').value.trim()}`,
-        first_name: $('signupFirst').value.trim(), last_name: $('signupLast').value.trim(),
-        role: $('signupRole').value }
-    );
-    if (error) { showAlert('authAlert', error.message, 'error'); btnLoading(btn, false, 'Create Account →'); }
-    else { showAlert('authAlert', 'Account created! Check your email to confirm, then log in.', 'success'); btnLoading(btn, false, 'Create Account →'); setTimeout(() => switchTab('login'), 3500); }
+    try {
+      const { error } = await Auth.signUp(
+        $('signupEmail').value.trim(), $('signupPassword').value,
+        { full_name: `${$('signupFirst').value.trim()} ${$('signupLast').value.trim()}`,
+          first_name: $('signupFirst').value.trim(), last_name: $('signupLast').value.trim(),
+          role: $('signupRole').value }
+      );
+      if (error) {
+        showAlert('authAlert', error.message, 'error');
+        btnLoading(btn, false, 'Create Account →');
+      } else {
+        showAlert('authAlert', 'Account created! Check your email to confirm, then log in.', 'success');
+        btnLoading(btn, false, 'Create Account →');
+        setTimeout(() => switchTab('login'), 3500);
+      }
+    } catch (err) {
+      showAlert('authAlert', 'Something went wrong. Please try again.', 'error');
+      btnLoading(btn, false, 'Create Account →');
+    }
   }
 </script>
 </body>
