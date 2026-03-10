@@ -6,14 +6,14 @@
   <title>Events — Param Makersadda</title>
   <link rel="stylesheet" href="css/main.css">
   <style>
+    /* Event type headers */
     .event-card { border: 2px solid var(--ink); box-shadow: var(--shadow); overflow: hidden; background: var(--paper); transition: transform 0.15s, box-shadow 0.15s; }
     .event-card:hover { transform: translate(-3px,-3px); box-shadow: var(--shadow-lg); }
     .event-top { padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--ink); }
-    .event-top.hackathon { background: var(--orange); color: #fff; }
-    .event-top.workshop  { background: var(--indigo); color: #fff; }
-    .event-top.tech-tuesday { background: var(--teal); color: #fff; }
-    .event-top.demo-day  { background: var(--ink);   color: var(--paper); border-bottom-color: var(--orange); }
-    .event-top.other     { background: var(--grey);  color: var(--ink); }
+    .event-top.build_challenge { background: var(--orange); color: #fff; }
+    .event-top.maker_meetup   { background: var(--indigo); color: #fff; }
+    .event-top.tech_tuesday   { background: var(--teal);   color: #fff; }
+    .event-top.other          { background: var(--grey);   color: var(--ink); }
     .event-date { font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; }
     .event-body { padding: 1.25rem; }
     .event-title { font-weight: 800; font-size: 1rem; margin-bottom: 0.4rem; }
@@ -21,12 +21,21 @@
     .event-footer { border-top: 1px solid var(--grey); padding-top: 0.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
     .event-footer .ef-meta { font-family: var(--font-mono); font-size: 0.7rem; color: var(--grey-dark); }
 
-    .past-event { border: 2px solid var(--grey); padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1.25rem; opacity: 0.65; }
-    .past-event .pe-date { font-family: var(--font-mono); font-size: 0.72rem; width: 80px; flex-shrink: 0; }
+    /* Type section headers */
+    .type-section { margin-bottom: 3rem; }
+    .type-label { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border: 2px solid var(--ink); margin-bottom: 1.25rem; }
+    .type-label.build { border-left: 6px solid var(--orange); background: #fff7f4; }
+    .type-label.meetup { border-left: 6px solid var(--indigo); background: #f5f4ff; }
+    .type-label.tuesday { border-left: 6px solid var(--teal); background: #f0fffe; }
+    .type-label h3 { margin: 0; font-size: 1.1rem; }
+    .type-label p { margin: 0; font-size: 0.78rem; opacity: 0.6; font-family: var(--font-mono); }
+
+    .past-event { border: 2px solid var(--grey); padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1.25rem; opacity: 0.65; margin-bottom: .5rem; }
+    .past-event .pe-date { font-family: var(--font-mono); font-size: 0.72rem; width: 90px; flex-shrink: 0; }
     .past-event h4 { font-size: 0.9rem; margin-bottom: 0.2rem; }
     .past-event p  { font-size: 0.78rem; color: var(--grey-dark); }
 
-    .no-events { text-align:center; padding:4rem 2rem; border:2px dashed var(--grey-dark); }
+    .no-events { text-align:center; padding:3rem 2rem; border:2px dashed var(--grey-dark); grid-column:1/-1; }
   </style>
 </head>
 <body>
@@ -35,9 +44,25 @@
 
 <div style="background:var(--ink); color:var(--paper); border-bottom:3px solid var(--orange);">
   <div class="container" style="padding:3rem 1.5rem;">
-    <p class="mono text-xs mb-2" style="opacity:0.45;">// Attend · Check In · Level Up</p>
+    <p class="mono text-xs mb-2" style="opacity:0.45;">// Build · Showcase · Connect</p>
     <h1 style="font-size:clamp(1.75rem,4vw,3rem);">Adda <span style="color:var(--orange);">Events</span></h1>
-    <p style="opacity:0.7; margin-top:0.75rem; max-width:480px;">Hackathons, Tech Tuesdays, workshops, and demo days. QR check-in auto-issues your badge the moment you attend.</p>
+    <p style="opacity:0.7; margin-top:0.75rem; max-width:560px;">Three event formats — Build Challenges, Maker Meetups, and Tech Tuesdays. Attend to earn badges, showcase work, and connect with the maker community.</p>
+
+    <!-- Type legend -->
+    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1.5rem;">
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <div style="width:12px;height:12px;background:var(--orange);"></div>
+        <span style="font-size:.75rem;font-family:var(--font-mono);opacity:.7;">Build Challenges</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <div style="width:12px;height:12px;background:var(--indigo);"></div>
+        <span style="font-size:.75rem;font-family:var(--font-mono);opacity:.7;">Maker Meetups</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <div style="width:12px;height:12px;background:var(--teal);"></div>
+        <span style="font-size:.75rem;font-family:var(--font-mono);opacity:.7;">Tech Tuesdays</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -45,21 +70,24 @@
 
   <!-- Filters -->
   <div class="filter-row">
-    <button class="filter-chip active" onclick="setFilter('all', this)">All</button>
-    <button class="filter-chip" onclick="setFilter('hackathon', this)">Hackathon</button>
-    <button class="filter-chip" onclick="setFilter('workshop', this)">Workshop</button>
-    <button class="filter-chip" onclick="setFilter('tech-tuesday', this)">Tech Tuesday</button>
-    <button class="filter-chip" onclick="setFilter('demo-day', this)">Demo Day</button>
+    <button class="filter-chip active" onclick="setFilter('all', this)">All Events</button>
+    <button class="filter-chip" onclick="setFilter('build_challenge', this)">⚡ Build Challenges</button>
+    <button class="filter-chip" onclick="setFilter('maker_meetup', this)">🤝 Maker Meetups</button>
+    <button class="filter-chip" onclick="setFilter('tech_tuesday', this)">📺 Tech Tuesdays</button>
   </div>
 
-  <h3 class="mb-3">Upcoming Events</h3>
-  <div class="grid-3 mb-6" id="upcomingGrid">
-    <div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>
+  <!-- Upcoming -->
+  <div id="upcomingSection">
+    <h3 class="mb-3">Upcoming</h3>
+    <div class="grid-3 mb-6" id="upcomingGrid">
+      <div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>
+    </div>
   </div>
 
+  <!-- Past -->
   <div class="divider-thin"></div>
   <h3 class="mt-4 mb-3" style="opacity:0.55;">Past Events</h3>
-  <div class="flex-col gap-sm" id="pastGrid">
+  <div id="pastGrid">
     <div class="loading"><div class="spinner"></div></div>
   </div>
 
@@ -75,11 +103,20 @@
 <script>
 let allEvents = [];
 let currentUser = null;
-let registrations = [];
+let myRegistrations = [];
 let currentFilter = 'all';
 const now = new Date().toISOString();
 
-const TYPE_CLASS = { hackathon:'hackathon', workshop:'workshop', 'tech-tuesday':'tech-tuesday', 'demo-day':'demo-day' };
+const TYPE_LABEL = {
+  build_challenge: '⚡ Build Challenge',
+  maker_meetup:    '🤝 Maker Meetup',
+  tech_tuesday:    '📺 Tech Tuesday',
+};
+const TYPE_CLASS = {
+  build_challenge: 'build_challenge',
+  maker_meetup:    'maker_meetup',
+  tech_tuesday:    'tech_tuesday',
+};
 
 onReady(async () => {
   await renderNav('events.html');
@@ -87,12 +124,14 @@ onReady(async () => {
   currentUser = await Auth.getUser();
 
   const [evRes, regRes] = await Promise.all([
-    db.from('events').select('*').order('starts_at', { ascending: true }),
-    currentUser ? db.from('event_registrations').select('event_id').eq('user_id', currentUser.id) : { data: [] },
+    db.from('events').select('*').order('start_at', { ascending: true }),
+    currentUser
+      ? db.from('event_registrations').select('event_id, registration_status').eq('user_id', currentUser.id)
+      : Promise.resolve({ data: [] }),
   ]);
 
-  allEvents    = evRes.data  || [];
-  registrations = (regRes.data || []).map(r => r.event_id);
+  allEvents       = evRes.data || [];
+  myRegistrations = (regRes.data || []);
   renderEvents();
 });
 
@@ -103,74 +142,103 @@ function setFilter(f, btn) {
   renderEvents();
 }
 
+function isRegistered(eventId) {
+  return myRegistrations.find(r => r.event_id === eventId && r.registration_status !== 'cancelled');
+}
+
 function renderEvents() {
-  let filtered = allEvents;
-  if (currentFilter !== 'all') filtered = allEvents.filter(e => e.type === currentFilter);
+  let filtered = currentFilter === 'all'
+    ? allEvents
+    : allEvents.filter(e => e.event_type === currentFilter);
 
-  const upcoming = filtered.filter(e => e.starts_at >= now);
-  const past     = filtered.filter(e => e.starts_at <  now);
+  const upcoming = filtered.filter(e => (e.start_at || '') >= now);
+  const past     = filtered.filter(e => (e.start_at || '') <  now);
 
-  // Upcoming
-  if (upcoming.length === 0) {
-    $('upcomingGrid').innerHTML = `<div class="no-events" style="grid-column:1/-1">
-      <div style="font-size:2rem; margin-bottom:1rem;">🎯</div>
-      <h3>No upcoming events</h3><p class="text-grey">Check back soon or follow us for announcements.</p>
+  // ── Upcoming ──
+  if (!upcoming.length) {
+    $('upcomingGrid').innerHTML = `<div class="no-events">
+      <div style="font-size:2rem;margin-bottom:1rem;">🎯</div>
+      <h3>No upcoming events</h3>
+      <p class="text-grey">Check back soon — events are published regularly.</p>
     </div>`;
   } else {
-    $('upcomingGrid').innerHTML = upcoming.map(ev => {
-      const isReg   = registrations.includes(ev.id);
-      const typeKey = (ev.type || 'other').toLowerCase().replace(' ', '-');
-      const isFull  = ev.registrations_count >= ev.max_participants;
-      return `
-        <div class="event-card">
-          <div class="event-top ${TYPE_CLASS[typeKey] || 'other'}">
-            <span class="badge badge-dark">${ev.type || 'Event'}</span>
-            <span class="event-date">${formatDate(ev.starts_at)}</span>
-          </div>
-          <div class="event-body">
-            <div class="event-title">${ev.title}</div>
-            <div class="event-desc">${truncate(ev.description || '', 110)}</div>
-            ${ev.badge_on_attend ? '<div class="badge badge-orange mb-2">🏅 Badge on Attendance</div>' : ''}
-            <div class="event-footer">
-              <div class="ef-meta">
-                ${ev.location ? `📍 ${ev.location}` : '📍 Param Lab'}
-                ${ev.max_participants ? ` · ${ev.registrations_count || 0}/${ev.max_participants}` : ''}
-              </div>
-              ${isReg
-                ? `<span class="badge badge-green">Registered ✓</span>`
-                : isFull
-                ? `<span class="badge badge-grey">Full</span>`
-                : currentUser
-                ? `<button class="btn btn-sm btn-primary" onclick="register('${ev.id}')">Register →</button>`
-                : `<a href="auth.html" class="btn btn-sm btn-primary">Login →</a>`
-              }
-            </div>
-          </div>
-        </div>`;
-    }).join('');
+    $('upcomingGrid').innerHTML = upcoming.map(ev => renderCard(ev)).join('');
   }
 
-  // Past
-  if (past.length === 0) {
+  // ── Past ──
+  if (!past.length) {
     $('pastGrid').innerHTML = `<p class="text-grey text-sm">No past events in this category.</p>`;
   } else {
-    $('pastGrid').innerHTML = past.reverse().map(ev => `
-      <div class="past-event">
-        <div class="pe-date">${formatDate(ev.starts_at)}</div>
-        <div>
+    $('pastGrid').innerHTML = [...past].reverse().map(ev => {
+      const reg = isRegistered(ev.id);
+      return `<div class="past-event">
+        <div class="pe-date">${formatDate(ev.start_at)}</div>
+        <div style="flex:1;">
           <h4>${ev.title}</h4>
-          <p>${ev.type || 'Event'}${ev.location ? ` · ${ev.location}` : ''}</p>
+          <p>${TYPE_LABEL[ev.event_type] || ev.event_type || 'Event'}${ev.venue ? ' · ' + ev.venue : ''}${ev.city ? ', ' + ev.city : ''}</p>
         </div>
-        ${registrations.includes(ev.id) ? '<span class="badge badge-green ml-auto">Attended ✓</span>' : ''}
-      </div>`).join('');
+        ${reg ? '<span class="badge badge-green">Attended ✓</span>' : ''}
+      </div>`;
+    }).join('');
   }
 }
 
-async function register(eventId) {
+function renderCard(ev) {
+  const reg      = isRegistered(ev.id);
+  const typeKey  = (ev.event_type || 'other');
+  const isFull   = ev.capacity && (ev.registrations_count || 0) >= ev.capacity;
+  const typeLabel = TYPE_LABEL[typeKey] || ev.event_type || 'Event';
+
+  // Extra info by event type
+  let typeExtra = '';
+  if (typeKey === 'build_challenge') {
+    typeExtra = `<div class="badge badge-orange mb-2">🏅 Badge on Submission</div>`;
+  } else if (typeKey === 'maker_meetup') {
+    typeExtra = `<div class="badge badge-indigo mb-2">🎪 Showcase Slots Available</div>`;
+  } else if (typeKey === 'tech_tuesday') {
+    typeExtra = `<div class="badge badge-teal mb-2">📺 Weekly · Recurring</div>`;
+  }
+
+  return `<div class="event-card">
+    <div class="event-top ${TYPE_CLASS[typeKey] || 'other'}">
+      <span class="badge badge-dark">${typeLabel}</span>
+      <span class="event-date">${formatDate(ev.start_at)}</span>
+    </div>
+    <div class="event-body">
+      <div class="event-title">${ev.title}</div>
+      <div class="event-desc">${truncate(ev.summary || ev.description || '', 110)}</div>
+      ${typeExtra}
+      <div class="event-footer">
+        <div class="ef-meta">
+          ${ev.venue ? `📍 ${ev.venue}` : '📍 Param Lab'}${ev.city ? ', ' + ev.city : ''}
+          ${ev.capacity ? ` · ${ev.capacity} seats` : ''}
+        </div>
+        ${reg
+          ? `<span class="badge badge-green">Registered ✓</span>`
+          : isFull
+          ? `<span class="badge badge-grey">Full</span>`
+          : currentUser
+          ? `<button class="btn btn-sm btn-primary" onclick="register('${ev.id}', '${typeKey}')">Register →</button>`
+          : `<a href="auth.html" class="btn btn-sm btn-primary">Login to Register →</a>`
+        }
+      </div>
+    </div>
+  </div>`;
+}
+
+async function register(eventId, eventType) {
   if (!currentUser) { window.location.href = 'auth.html'; return; }
-  const { error } = await db.from('event_registrations').insert({ event_id: eventId, user_id: currentUser.id });
-  if (!error) { registrations.push(eventId); renderEvents(); }
-  else alert(error.message);
+  const { error } = await db.from('event_registrations').insert({
+    event_id: eventId,
+    user_id: currentUser.id,
+    registration_status: 'confirmed',
+  });
+  if (!error) {
+    myRegistrations.push({ event_id: eventId, registration_status: 'confirmed' });
+    renderEvents();
+  } else {
+    alert(error.message);
+  }
 }
 </script>
 </body>

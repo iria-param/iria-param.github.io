@@ -7,37 +7,37 @@
   <link rel="stylesheet" href="css/main.css">
   <style>
     .tier-header { padding: 2rem; border: 2px solid var(--ink); box-shadow: var(--shadow); margin-bottom: 1.5rem; }
-    .tier-header.t1 { background: var(--paper); border-left: 5px solid var(--orange); }
-    .tier-header.t2 { background: var(--paper); border-left: 5px solid var(--indigo); }
-    .tier-header.t3 { background: var(--ink); color: var(--paper); border-left: 5px solid var(--teal); }
+    .tier-header.t1 { background: var(--paper); border-left: 6px solid var(--orange); }
+    .tier-header.t2 { background: var(--paper); border-left: 6px solid var(--indigo); }
+    .tier-header.t3 { background: var(--ink); color: var(--paper); border-left: 6px solid var(--teal); }
     .tier-header .th-badge { margin-bottom: 0.75rem; }
-    .tier-header h2 { font-size: 1.35rem; margin-bottom: 0.4rem; }
-    .tier-header p  { font-size: 0.875rem; opacity: 0.7; }
+    .tier-header h2 { font-size: 1.35rem; margin-bottom: 0.25rem; }
+    .tier-header p  { font-size: 0.875rem; opacity: 0.65; }
 
-    .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 3rem; }
-    .module-card {
-      border: 2px solid var(--ink); padding: 1.5rem;
-      transition: transform 0.15s, box-shadow 0.15s; position: relative;
-    }
-    .module-card.unlocked { background: var(--paper); box-shadow: var(--shadow); cursor: pointer; }
-    .module-card.unlocked:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
-    .module-card.completed { background: #f0fdf4; border-color: var(--green); }
-    .module-card.locked { background: var(--grey-light); opacity: 0.55; }
-    .module-card .lock-icon { position: absolute; top: 1rem; right: 1rem; font-size: 1rem; }
-    .module-card .mc-num { font-family: var(--font-mono); font-size: 0.65rem; color: var(--grey-dark); margin-bottom: 0.5rem; }
-    .module-card h4 { margin-bottom: 0.35rem; }
-    .module-card p  { font-size: 0.8rem; color: var(--grey-dark); margin-bottom: 1rem; }
-    .module-card .mc-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .track-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 3rem; }
+    @media(max-width:1024px) { .track-grid { grid-template-columns: repeat(2,1fr); } }
+    @media(max-width:600px)  { .track-grid { grid-template-columns: 1fr; } }
 
-    .enroll-banner {
-      background: var(--orange); border: 2px solid var(--ink); box-shadow: var(--shadow);
-      padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
-    }
-    .enroll-banner.enrolled { background: var(--teal); }
-    .enroll-banner p { color: #fff; font-weight: 600; }
+    .track-card { border: 2px solid var(--ink); padding: 1.5rem; background: var(--paper); box-shadow: var(--shadow); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position:relative; }
+    .track-card:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-lg); }
+    .track-card.enrolled { border-color: var(--teal); }
+    .track-card.completed { background: #f0fdf4; border-color: var(--green); }
 
-    @media(max-width:768px) { .module-grid { grid-template-columns: 1fr; } }
-    @media(max-width:1024px) { .module-grid { grid-template-columns: repeat(2,1fr); } }
+    .tc-check { position:absolute; top:1rem; right:1rem; font-size:1rem; }
+    .tc-tier  { font-family:var(--font-mono); font-size:.65rem; color:var(--grey-dark); margin-bottom:.5rem; }
+    .tc-title { font-weight:800; font-size:.95rem; margin-bottom:.35rem; }
+    .tc-desc  { font-size:.78rem; color:var(--grey-dark); margin-bottom:.75rem; line-height:1.55; }
+    .tc-meta  { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+
+    .challenge-detail { border:2px solid var(--ink); box-shadow:var(--shadow-lg); padding:2rem; background:var(--paper); margin-bottom:3rem; display:none; }
+    .challenge-detail.open { display:block; }
+    .cd-field { display:flex; gap:1rem; padding:.6rem 0; border-bottom:1px solid var(--grey); }
+    .cd-field:last-child { border:none; }
+    .cd-key   { font-family:var(--font-mono); font-size:.68rem; font-weight:700; color:var(--orange); width:110px; flex-shrink:0; padding-top:.1rem; text-transform:uppercase; }
+    .cd-val   { font-size:.82rem; line-height:1.55; }
+
+    .progress-wrap { background:var(--grey); height:8px; border:1px solid var(--grey-dark); margin:.4rem 0 .75rem; }
+    .progress-fill { height:100%; background:var(--teal); }
   </style>
 </head>
 <body>
@@ -45,15 +45,27 @@
 <nav class="nav" id="mainNav"></nav>
 
 <div style="background:var(--ink); color:var(--paper); border-bottom:3px solid var(--orange);">
-  <div class="container" style="padding-top:3rem; padding-bottom:3rem;">
-    <p class="mono text-xs mb-2" style="opacity:0.45;">// Learn → Build → Grow</p>
+  <div class="container" style="padding:3rem 1.5rem;">
+    <p class="mono text-xs mb-2" style="opacity:0.45;">// Explorer → Solver → Architect</p>
     <h1 style="font-size:clamp(1.75rem,4vw,3rem);">Explorer <span style="color:var(--orange);">Hub</span></h1>
-    <p style="opacity:0.7; margin-top:0.75rem; max-width:480px;">Three progressive tracks — start from fundamentals and advance to open innovation. Earn badges and certificates at every milestone.</p>
+    <p style="opacity:0.7; margin-top:0.75rem; max-width:520px;">Three progressive challenge tiers — each with a driving question, constraints, real deliverables, and reflection. Earn badges and certificates at every milestone.</p>
   </div>
 </div>
 
-<div class="container" style="padding-top:3rem; padding-bottom:4rem;" id="explorerContent">
-  <div class="loading"><div class="spinner"></div></div>
+<div class="container" style="padding-top:3rem; padding-bottom:4rem;">
+
+  <!-- Tier filter -->
+  <div class="filter-row">
+    <button class="filter-chip active" onclick="setTier('all',this)">All Tiers</button>
+    <button class="filter-chip" onclick="setTier('T1',this)">T1 — Explorer</button>
+    <button class="filter-chip" onclick="setTier('T2',this)">T2 — Solver</button>
+    <button class="filter-chip" onclick="setTier('T3',this)">T3 — Architect</button>
+  </div>
+
+  <div id="explorerContent">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+
 </div>
 
 <footer class="footer" id="mainFooter"></footer>
@@ -64,128 +76,251 @@
 <script src="js/auth.js"></script>
 <script src="js/nav.js"></script>
 <script>
-const TRACKS = [
-  { key:'T1', label:'T1 — Fundamentals', color:'t1', badge:'badge-orange',
-    desc:'Build your foundation. Hands-on modules covering electronics, fabrication, digital tools, and safety. Open to all.',
-    modules:[
-      {id:'t1-1', title:'Lab Safety & Induction', desc:'Workspace rules, equipment safety, emergency procedures.', duration:'2h', type:'Required'},
-      {id:'t1-2', title:'Electronics Basics', desc:'Ohm\'s law, breadboarding, reading schematics.', duration:'4h', type:'Hands-on'},
-      {id:'t1-3', title:'Digital Fabrication Intro', desc:'3D printing, laser cutting fundamentals.', duration:'3h', type:'Hands-on'},
-      {id:'t1-4', title:'Arduino Basics', desc:'Microcontroller programming, sensors, actuators.', duration:'5h', type:'Project'},
-      {id:'t1-5', title:'Design Thinking Workshop', desc:'Problem framing, ideation, rapid prototyping.', duration:'3h', type:'Workshop'},
-      {id:'t1-6', title:'T1 Capstone Project', desc:'Build a simple working prototype using T1 skills.', duration:'8h', type:'Capstone'},
-    ]
+
+// Challenge tier metadata — matches PDF structure
+const TIER_META = {
+  T1: {
+    cls: 't1', badge: 'badge-orange',
+    label: 'T1 — Explorer', sublabel: 'Curiosity + Experimentation',
+    desc: 'Build your foundation through hands-on exploration. Driving questions, constrained materials, and guided reflection.',
+    format: 'Driving Question: How does X affect Y?',
+    output:  'Simple model, observation, comparison, or explanation',
+    reflect: 'What changed? What stayed the same? What do you think is happening?',
+    prereq:  'Open to all — no prerequisites',
   },
-  { key:'T2', label:'T2 — Problem Solving', color:'t2', badge:'badge-indigo',
-    desc:'Tackle real-world problems. Advanced fabrication, embedded systems, team projects, and maker methodology. Requires T1.',
-    modules:[
-      {id:'t2-1', title:'Advanced Electronics', desc:'PCB design, soldering, component selection.', duration:'6h', type:'Hands-on'},
-      {id:'t2-2', title:'Embedded Systems', desc:'Raspberry Pi, ESP32, IoT connectivity.', duration:'8h', type:'Hands-on'},
-      {id:'t2-3', title:'CAD & Fabrication', desc:'Fusion 360, CNC routing, advanced 3D printing.', duration:'6h', type:'Hands-on'},
-      {id:'t2-4', title:'Data & Sensors', desc:'Sensor arrays, data logging, basic ML.', duration:'5h', type:'Project'},
-      {id:'t2-5', title:'Project Management', desc:'Scoping, milestones, documentation, presentations.', duration:'3h', type:'Workshop'},
-      {id:'t2-6', title:'T2 Team Project', desc:'Solve a real problem with a team under mentorship.', duration:'20h', type:'Capstone'},
-    ]
+  T2: {
+    cls: 't2', badge: 'badge-indigo',
+    label: 'T2 — Solver', sublabel: 'Problem + Prototype',
+    desc: 'Tackle real-world problems. Work within budgets and constraints to design, build, and test solutions.',
+    format: 'Design a way to solve X using Y resources',
+    output:  'Working prototype + test report + reflection',
+    reflect: 'What worked? What failed? Why this path? What would you change?',
+    prereq:  'Requires T1 completion',
   },
-  { key:'T3', label:'T3 — Open Innovation', color:'t3', badge:'badge-teal',
-    desc:'Lead your own innovation. Propose original projects, work with the community, and showcase at Param Demo Day. Requires T2.',
-    modules:[
-      {id:'t3-1', title:'Innovation & IP Basics', desc:'Ideation frameworks, IP basics, grant writing.', duration:'4h', type:'Workshop'},
-      {id:'t3-2', title:'Advanced Fabrication Lab', desc:'Full lab access — CNC, metal work, advanced 3D.', duration:'10h', type:'Open Lab'},
-      {id:'t3-3', title:'Community & Collaboration', desc:'Working with external partners, open source.', duration:'3h', type:'Workshop'},
-      {id:'t3-4', title:'T3 Innovation Project', desc:'Propose, build, and validate an original innovation.', duration:'40h', type:'Capstone'},
-      {id:'t3-5', title:'Demo Day Showcase', desc:'Present to community, mentors, and guests.', duration:'4h', type:'Showcase'},
-    ]
+  T3: {
+    cls: 't3', badge: 'badge-teal',
+    label: 'T3 — Architect', sublabel: 'System + Innovation',
+    desc: 'Lead your own innovation. Design complex systems, validate assumptions, and present to the community.',
+    format: 'Design Brief: Build a system for a target user/context',
+    output:  'Prototype + documentation + testing evidence + review presentation',
+    reflect: 'Why this architecture? What assumptions? What are the failure points?',
+    prereq:  'Requires T2 completion',
   },
-];
+};
+
+let allTracks = [], myEnrollments = [], currentTier = 'all', currentUser = null;
+let openTrackId = null;
 
 onReady(async () => {
   await renderNav('explorer.html');
   renderFooter();
+  currentUser = await Auth.getUser();
 
-  const user = await Auth.getUser();
-  let enrollments = [];
-  let completions = [];
+  const [trackRes, enrollRes] = await Promise.all([
+    db.from('explorer_tracks').select('*').eq('status','active').order('tier').order('title'),
+    currentUser
+      ? db.from('explorer_enrollments').select('*').eq('user_id', currentUser.id)
+      : Promise.resolve({ data: [] }),
+  ]);
 
-  if (user) {
-    const [eRes, cRes] = await Promise.all([
-      db.from('track_enrollments').select('*').eq('user_id', user.id),
-      db.from('module_completions').select('*').eq('user_id', user.id),
-    ]);
-    enrollments = eRes.data || [];
-    completions = cRes.data || [];
-  }
+  allTracks    = trackRes.data  || [];
+  myEnrollments = enrollRes.data || [];
 
-  const enrolledTiers = enrollments.map(e => e.track_tier);
-  const completedIds  = completions.map(c => c.module_id);
+  if (!allTracks.length) renderFallback();
+  else render();
+});
 
+function setTier(t, btn) {
+  currentTier = t;
+  openTrackId = null;
+  $$('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function getEnrollment(trackId) {
+  return myEnrollments.find(e => e.explorer_track_id === trackId);
+}
+
+function render() {
+  const tiers = currentTier === 'all' ? ['T1','T2','T3'] : [currentTier];
   let html = '';
 
-  TRACKS.forEach((track, ti) => {
-    const isEnrolled  = enrolledTiers.includes(track.key);
-    const prevDone    = ti === 0 || enrolledTiers.includes(TRACKS[ti-1].key);
-    const isLocked    = !prevDone && ti > 0;
-    const enrollment  = enrollments.find(e => e.track_tier === track.key);
-    const pct         = enrollment?.progress_pct ?? 0;
+  tiers.forEach(tier => {
+    const meta   = TIER_META[tier];
+    const tracks = allTracks.filter(t => t.tier === tier);
+    if (!tracks.length && currentTier !== 'all') {
+      html += `<div class="empty-state"><div class="empty-icon">📡</div><h3>No ${tier} tracks yet</h3><p>Check back soon.</p></div>`;
+      return;
+    }
+    if (!tracks.length) return;
+
+    const enrolledCount  = tracks.filter(t => getEnrollment(t.id)).length;
+    const completedCount = tracks.filter(t => getEnrollment(t.id)?.completed_at).length;
 
     html += `
-      <div class="tier-header ${track.color}">
-        <div class="th-badge"><span class="badge ${track.badge}">${track.key}</span>${isLocked ? '<span class="badge badge-grey ml-auto" style="margin-left:.5rem;">Locked</span>' : ''}</div>
+      <div class="tier-header ${meta.cls}">
+        <div class="th-badge">
+          <span class="badge ${meta.badge}">${tier}</span>
+          ${meta.prereq !== 'Open to all — no prerequisites'
+            ? `<span class="badge badge-grey" style="margin-left:.5rem;">${meta.prereq}</span>` : ''}
+        </div>
         <div class="flex-between" style="flex-wrap:wrap; gap:1rem; align-items:flex-start;">
           <div>
-            <h2>${track.label}</h2>
-            <p>${track.desc}</p>
+            <h2>${meta.label}</h2>
+            <p><strong>${meta.sublabel}</strong> — ${meta.desc}</p>
           </div>
-          <div style="min-width:200px;">
-            ${isEnrolled
-              ? `<div class="text-xs mono mb-1" style="opacity:0.7;">${pct}% Complete</div>
-                 <div class="progress mb-2"><div class="progress-bar ${track.color === 't2' ? 'indigo' : track.color === 't3' ? 'teal' : ''}" style="width:${pct}%"></div></div>
+          <div style="text-align:right; min-width:160px;">
+            ${currentUser && enrolledCount > 0
+              ? `<div class="text-xs mono mb-1" style="opacity:.6;">${completedCount}/${tracks.length} tracks done</div>
+                 <div class="progress-wrap"><div class="progress-fill" style="width:${Math.round(completedCount/tracks.length*100)}%"></div></div>
                  <span class="badge badge-teal">Enrolled</span>`
-              : isLocked
-              ? `<span class="badge badge-grey">Complete ${TRACKS[ti-1].key} first</span>`
-              : user
-              ? `<button class="btn btn-sm ${ti===0?'btn-primary':ti===1?'btn-indigo':'btn-teal'}" onclick="enrollTrack('${track.key}')">Enroll in ${track.key} →</button>`
+              : currentUser
+              ? `<div class="text-xs mono mb-2" style="opacity:.6;">${tracks.length} track${tracks.length!==1?'s':''} available</div>`
               : `<a href="auth.html" class="btn btn-sm btn-primary">Login to Enroll →</a>`
             }
           </div>
         </div>
+        <!-- Challenge format quick-ref -->
+        <div style="margin-top:1.25rem; display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem 1.5rem;">
+          <div style="font-size:.75rem; ${meta.cls==='t3'?'opacity:.65':'opacity:.6'};">
+            <span style="font-family:var(--font-mono);font-size:.6rem;font-weight:700;display:block;margin-bottom:.15rem;${meta.cls==='t1'?'color:var(--orange)':meta.cls==='t2'?'color:var(--indigo)':'color:var(--teal)'}">FORMAT</span>
+            ${meta.format}
+          </div>
+          <div style="font-size:.75rem; ${meta.cls==='t3'?'opacity:.65':'opacity:.6'};">
+            <span style="font-family:var(--font-mono);font-size:.6rem;font-weight:700;display:block;margin-bottom:.15rem;${meta.cls==='t1'?'color:var(--orange)':meta.cls==='t2'?'color:var(--indigo)':'color:var(--teal)'}">OUTPUT</span>
+            ${meta.output}
+          </div>
+        </div>
       </div>
 
-      <div class="module-grid">
-        ${track.modules.map(mod => {
-          const done   = completedIds.includes(mod.id);
-          const locked = isLocked || (!isEnrolled && !done);
-          const cls    = done ? 'completed' : locked ? 'locked' : 'unlocked';
-          return `
-            <div class="module-card ${cls}" onclick="${!locked ? `openModule('${mod.id}', '${mod.title}')` : ''}">
-              ${done   ? '<div class="lock-icon" style="color:var(--green);">✓</div>' : ''}
-              ${locked && !done ? '<div class="lock-icon">🔒</div>' : ''}
-              <div class="mc-num">${mod.id.toUpperCase()}</div>
-              <h4>${mod.title}</h4>
-              <p>${mod.desc}</p>
-              <div class="mc-meta">
-                <span class="badge badge-grey">${mod.duration}</span>
-                <span class="badge ${mod.type === 'Capstone' ? 'badge-orange' : mod.type === 'Workshop' ? 'badge-indigo' : 'badge-grey'}">${mod.type}</span>
-                ${done ? '<span class="badge badge-green">Done</span>' : ''}
-              </div>
-            </div>`;
-        }).join('')}
-      </div>`;
+      <div class="track-grid">
+        ${tracks.map(t => renderTrackCard(t, meta)).join('')}
+      </div>
+      <div id="detail-${tier}"></div>`;
   });
 
-  $('explorerContent').innerHTML = html;
-});
-
-async function enrollTrack(tier) {
-  const user = await Auth.getUser();
-  if (!user) { window.location.href = 'auth.html'; return; }
-  const { error } = await db.from('track_enrollments').insert({ user_id: user.id, track_tier: tier, progress_pct: 0 });
-  if (!error) location.reload();
-  else alert('Error enrolling: ' + error.message);
+  $('explorerContent').innerHTML = html || `<div class="empty-state"><div class="empty-icon">📡</div><h3>No tracks found</h3></div>`;
 }
 
-function openModule(id, title) {
-  alert(`Opening module: ${title}\n\nModule content viewer coming soon!`);
+function renderTrackCard(t, meta) {
+  const enrollment = getEnrollment(t.id);
+  const isComplete = !!enrollment?.completed_at;
+  const pct        = enrollment?.progress_percent ?? 0;
+  const diffColor  = { beginner:'badge-teal', intermediate:'badge-indigo', advanced:'badge-orange' };
+
+  return `<div class="track-card ${isComplete?'completed':enrollment?'enrolled':''}" onclick="toggleDetail('${t.id}','${t.tier}')">
+    ${isComplete ? '<div class="tc-check" style="color:var(--green)">✓</div>'
+      : enrollment ? '<div class="tc-check" style="color:var(--teal)">◉</div>' : ''}
+    <div class="tc-tier">${t.tier} · ${t.domain || 'General'}</div>
+    <div class="tc-title">${t.title}</div>
+    <div class="tc-desc">${truncate(t.description || '', 90)}</div>
+    ${enrollment ? `<div class="progress-wrap"><div class="progress-fill" style="width:${pct}%"></div></div>` : ''}
+    <div class="tc-meta">
+      ${t.difficulty ? `<span class="badge ${diffColor[t.difficulty]||'badge-grey'}">${t.difficulty}</span>` : ''}
+      ${t.estimated_hours ? `<span class="badge badge-grey">⏱ ${t.estimated_hours}h</span>` : ''}
+      ${t.badge_enabled ? '<span class="badge badge-orange">🏅</span>' : ''}
+      ${t.certification_enabled ? '<span class="badge badge-indigo">📜</span>' : ''}
+    </div>
+  </div>`;
+}
+
+async function toggleDetail(trackId, tier) {
+  const container = $(`detail-${tier}`);
+  if (!container) return;
+
+  if (openTrackId === trackId) {
+    container.innerHTML = '';
+    openTrackId = null;
+    return;
+  }
+  openTrackId = trackId;
+
+  const track      = allTracks.find(t => t.id === trackId);
+  const enrollment = getEnrollment(trackId);
+  const meta       = TIER_META[tier] || {};
+
+  container.innerHTML = `<div class="challenge-detail open">
+    <div class="flex-between mb-3" style="flex-wrap:wrap;gap:1rem;">
+      <div>
+        <div class="mono text-xs text-grey mb-1">${track.tier} · ${track.domain||''}</div>
+        <h3>${track.title}</h3>
+      </div>
+      <button onclick="document.getElementById('detail-${tier}').innerHTML='';openTrackId=null;" class="btn btn-sm btn-ghost">Close ×</button>
+    </div>
+
+    ${track.description ? `<p class="text-sm text-grey mb-3">${track.description}</p>` : ''}
+
+    <div class="cd-field"><div class="cd-key">Format</div><div class="cd-val">${meta.format||''}</div></div>
+    <div class="cd-field"><div class="cd-key">Output</div><div class="cd-val">${meta.output||track.expected_outcomes||''}</div></div>
+    <div class="cd-field"><div class="cd-key">Reflection</div><div class="cd-val">${meta.reflect||''}</div></div>
+    ${track.estimated_hours ? `<div class="cd-field"><div class="cd-key">Duration</div><div class="cd-val">Est. ${track.estimated_hours} hours</div></div>` : ''}
+    ${track.prerequisites ? `<div class="cd-field"><div class="cd-key">Prerequisites</div><div class="cd-val">${JSON.stringify(track.prerequisites)}</div></div>` : ''}
+
+    <div style="margin-top:1.5rem;">
+      ${!currentUser
+        ? `<a href="auth.html" class="btn btn-primary">Login to Enroll →</a>`
+        : enrollment
+        ? `<div>
+            <div class="flex-between text-sm mb-1"><span>Progress</span><span class="mono">${enrollment.progress_percent||0}%</span></div>
+            <div class="progress-wrap"><div class="progress-fill" style="width:${enrollment.progress_percent||0}%"></div></div>
+            ${!enrollment.completed_at
+              ? `<div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;">
+                  <div style="display:flex;gap:.5rem;">
+                    <input type="number" id="pct-${trackId}" class="form-input" min="0" max="100" value="${enrollment.progress_percent||0}" style="width:90px;">
+                    <button class="btn btn-sm btn-indigo" onclick="updateProgress('${enrollment.id}','${trackId}')">Update %</button>
+                  </div>
+                  <button class="btn btn-sm btn-green" onclick="markComplete('${enrollment.id}','${trackId}','${tier}')">Mark Complete ✓</button>
+                </div>`
+              : `<div class="badge badge-green mt-2">✓ Completed ${formatDate(enrollment.completed_at)}</div>`
+            }
+          </div>`
+        : `<button class="btn btn-primary" onclick="enroll('${trackId}','${tier}')">Enroll in this Track →</button>`
+      }
+    </div>
+  </div>`;
+}
+
+async function enroll(trackId, tier) {
+  if (!currentUser) { window.location.href='auth.html'; return; }
+  const { error } = await db.from('explorer_enrollments').insert({
+    explorer_track_id: trackId, user_id: currentUser.id,
+    status: 'in_progress', progress_percent: 0,
+    started_at: new Date().toISOString(),
+  });
+  if (error) { alert(error.message); return; }
+  const { data } = await db.from('explorer_enrollments').select('*').eq('user_id', currentUser.id);
+  myEnrollments = data || [];
+  render();
+}
+
+async function updateProgress(enrollId, trackId) {
+  const val = Math.min(100, Math.max(0, parseInt($(`pct-${trackId}`)?.value||0)));
+  await db.from('explorer_enrollments').update({ progress_percent: val }).eq('id', enrollId);
+  const { data } = await db.from('explorer_enrollments').select('*').eq('user_id', currentUser.id);
+  myEnrollments = data || [];
+  render();
+}
+
+async function markComplete(enrollId, trackId, tier) {
+  await db.from('explorer_enrollments').update({ progress_percent:100, completed_at: new Date().toISOString(), status:'completed' }).eq('id', enrollId);
+  const { data } = await db.from('explorer_enrollments').select('*').eq('user_id', currentUser.id);
+  myEnrollments = data || [];
+  render();
+}
+
+// Fallback when DB has no tracks yet
+function renderFallback() {
+  const STATIC = [
+    { tier:'T1', title:'Electronics Basics', domain:'Electronics', difficulty:'beginner', estimated_hours:4, badge_enabled:true, description:'How does voltage affect LED brightness? Explore Ohm\'s law through direct experimentation with resistors and LEDs.' },
+    { tier:'T1', title:'Digital Fabrication Intro', domain:'Fabrication', difficulty:'beginner', estimated_hours:3, badge_enabled:false, description:'What happens when you change parameters in 3D printing? Explore layer height, infill, and material effects.' },
+    { tier:'T1', title:'Design Thinking Basics', domain:'Design', difficulty:'beginner', estimated_hours:3, badge_enabled:false, description:'How does reframing a problem change potential solutions? Practice with structured ideation tools.' },
+    { tier:'T2', title:'PCB Design Challenge', domain:'Electronics', difficulty:'intermediate', estimated_hours:8, badge_enabled:true, description:'Design a minimal PCB for a sensor readout system. Meet power, footprint, and cost constraints.' },
+    { tier:'T2', title:'IoT Sensor Network', domain:'IoT', difficulty:'intermediate', estimated_hours:10, badge_enabled:true, description:'Build a distributed sensor network to monitor environmental conditions in the makerspace.' },
+    { tier:'T3', title:'Lab Monitoring System', domain:'Interdisciplinary', difficulty:'advanced', estimated_hours:40, badge_enabled:true, certification_enabled:true, description:'Design a full monitoring system for the makerspace — sensors, dashboard, alerts. For T2-certified makers.' },
+  ];
+  allTracks = STATIC.map((t,i) => ({ id:`static-${i}`, ...t, status:'active', slug:slugify(t.title) }));
+  render();
 }
 </script>
 </body>
