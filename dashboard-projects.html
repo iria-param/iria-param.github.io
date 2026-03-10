@@ -8,14 +8,10 @@
     .project-panel{border:2px solid var(--ink);box-shadow:var(--shadow);margin-bottom:1.5rem;}
     .pp-head{background:var(--ink);color:var(--paper);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;border-bottom:3px solid var(--orange);}
     .pp-body{padding:1.25rem;}
-    .milestone-row{display:flex;align-items:center;gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--grey);}
-    .milestone-row:last-child{border-bottom:none;}
-    .ms-check{width:22px;height:22px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;flex-shrink:0;background:var(--paper);}
-    .ms-check.done{background:var(--green);}
-    .ms-info{flex:1;}
-    .ms-title{font-weight:700;font-size:.875rem;}
-    .ms-due{font-size:.7rem;font-family:var(--font-mono);color:var(--grey-dark);}
-    .add-ms-form{background:var(--grey-light);border:1px solid var(--grey);padding:1rem;margin-top:1rem;}
+    .update-row{padding:.75rem 0;border-bottom:1px solid var(--grey);}
+    .update-row:last-child{border-bottom:none;}
+    .add-update-form{background:var(--grey-light);border:1px solid var(--grey);padding:1rem;margin-top:1rem;}
+    .update-type-badge{font-size:.65rem;font-weight:700;padding:.15rem .4rem;font-family:var(--font-mono);}
   </style>
 </head>
 <body>
@@ -24,10 +20,10 @@
   <aside class="sidebar" id="mainSidebar"></aside>
   <main class="main-content">
     <div class="page-header">
-      <div class="ph-label">// projects + project_milestones + project_members</div>
+      <div class="ph-label">// projects + project_members + project_updates</div>
       <div class="flex-between" style="flex-wrap:wrap;gap:.75rem;">
         <h1>My Projects</h1>
-        <a href="projects.html" class="btn btn-primary btn-sm">Propose New Project →</a>
+        <a href="projects.html" class="btn btn-primary btn-sm">Browse Projects →</a>
       </div>
     </div>
     <div id="projectsContent"><div class="loading"><div class="spinner"></div></div></div>
@@ -38,117 +34,144 @@
 <script src="js/auth.js"></script><script src="js/nav.js"></script><script src="js/sidebar.js"></script>
 <script>
 let currentUser;
-onReady(async()=>{
-  await renderNav();
-  currentUser=await Auth.requireAuth('auth.html');
-  if(!currentUser) return;
-  const {data:prof}=await db.from('maker_profiles').select('*').eq('user_id',currentUser.id).single();
-  renderSidebar('projects',prof,currentUser);
-  await loadProjects();
+
+onReady(async () => {
+  try {
+    await renderNav();
+    currentUser = await Auth.requireAuth('auth.html');
+    if (!currentUser) return;
+    const { data: prof } = await db.from('maker_profiles').select('*').eq('user_id', currentUser.id).single();
+    renderSidebar('projects', prof, currentUser);
+    await loadProjects();
+  } catch(e) {
+    $('projectsContent').innerHTML = `<div class="alert alert-error">${e.message}</div>`;
+  }
 });
 
-async function loadProjects(){
-  const {data:members}=await db.from('project_members').select('role, projects(*, project_members(user_id,role,joined_at,maker_profiles(full_name)), project_milestones(*))').eq('user_id',currentUser.id);
-  const projects=(members||[]).map(m=>({...m.projects, myRole:m.role})).filter(Boolean);
+async function loadProjects() {
+  const { data: members, error } = await db
+    .from('project_members')
+    .select('team_role, is_lead, projects(*, project_members(user_id,team_role,is_lead,joined_at,maker_profiles(full_name)), project_updates(id,title,update_type,body,visibility,created_at))')
+    .eq('user_id', currentUser.id);
 
-  if(!projects.length){
-    $('projectsContent').innerHTML=`<div class="empty-state"><div class="empty-icon">🔧</div><h3>No projects yet</h3><p>Propose a project or join an existing one.</p><a href="projects.html" class="btn btn-primary btn-sm">Browse Projects →</a></div>`;
+  if (error) { $('projectsContent').innerHTML=`<div class="alert alert-error">${error.message}</div>`; return; }
+  const projects = (members||[]).map(m => ({ ...m.projects, myRole: m.team_role, isLead: m.is_lead })).filter(Boolean);
+
+  if (!projects.length) {
+    $('projectsContent').innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🔧</div><h3>No projects yet</h3>
+      <p>Propose a project or join an existing one.</p>
+      <a href="projects.html" class="btn btn-primary btn-sm mt-2">Browse Projects →</a>
+    </div>`;
     return;
   }
 
-  $('projectsContent').innerHTML=projects.map(p=>{
-    const milestones=p.project_milestones||[];
-    const members=(p.project_members||[]);
-    const isOwner=p.myRole==='owner'||p.owner_id===currentUser.id;
+  $('projectsContent').innerHTML = projects.map(p => {
+    const updates = (p.project_updates || []).sort((a,b) => new Date(b.created_at)-new Date(a.created_at));
+    const team = p.project_members || [];
+    const isLead = p.isLead || p.lead_user_id === currentUser.id;
+    const typeColors = { progress:'badge-teal', milestone:'badge-green', issue:'badge-orange', general:'badge-grey' };
 
     return `<div class="project-panel">
       <div class="pp-head">
         <div>
-          <div class="flex-wrap gap-sm mb-1">${statusBadge(p.status)}<span class="badge badge-grey">${p.tier?'T'+p.tier:''}</span><span class="badge badge-${p.visibility==='public'?'teal':'grey'}">${p.visibility||'private'}</span>${p.showcase_ready?'<span class="badge badge-orange">Showcase Ready</span>':''}</div>
+          <div class="flex-wrap gap-sm mb-1">
+            ${statusBadge(p.status)}
+            ${p.approval_status ? `<span class="badge badge-grey">${p.approval_status}</span>` : ''}
+            ${p.visibility ? `<span class="badge badge-${p.visibility==='public'?'teal':'grey'}">${p.visibility}</span>` : ''}
+            ${p.showcase_flag ? '<span class="badge badge-orange">Showcase</span>' : ''}
+            ${isLead ? '<span class="badge badge-yellow">Lead</span>' : ''}
+          </div>
           <div style="font-weight:800;font-size:1.05rem;">${p.title}</div>
-          ${p.domain?`<div class="mono text-xs" style="opacity:.5;margin-top:.2rem;">${p.domain}</div>`:''}
+          ${p.tags?.length ? `<div class="mono text-xs" style="opacity:.5;margin-top:.2rem;">${p.tags.join(' · ')}</div>` : ''}
         </div>
-        ${isOwner?`<div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+        ${isLead ? `<div style="display:flex;gap:.5rem;flex-wrap:wrap;">
           ${p.status==='draft'?`<button class="btn btn-sm btn-teal" onclick="updateStatus('${p.id}','active')">Mark Active</button>`:''}
           ${p.status==='active'?`<button class="btn btn-sm btn-green" onclick="updateStatus('${p.id}','completed')">Mark Complete</button>`:''}
           <button class="btn btn-sm btn-ghost" onclick="toggleVisibility('${p.id}','${p.visibility}')">Toggle Visibility</button>
-        </div>`:''}
+        </div>` : ''}
       </div>
       <div class="pp-body">
-        ${p.description?`<p class="text-sm text-grey mb-3">${p.description}</p>`:''}
+        ${p.summary ? `<p class="text-sm text-grey mb-3">${p.summary}</p>` : ''}
 
-        <!-- Milestones -->
+        <!-- Updates -->
         <div class="flex-between mb-2">
-          <h4 class="text-sm">Milestones (${milestones.filter(m=>m.completed_at).length}/${milestones.length})</h4>
-          ${isOwner?`<button class="btn btn-sm btn-ghost" onclick="toggleAddMs('add-ms-${p.id}')">+ Add Milestone</button>`:''}
+          <h4 class="text-sm">Project Updates (${updates.length})</h4>
+          <button class="btn btn-sm btn-ghost" onclick="toggleAddUpdate('add-upd-${p.id}')">+ Post Update</button>
         </div>
-        <div id="ms-list-${p.id}">
-          ${milestones.length===0?'<p class="text-sm text-grey">No milestones yet.</p>':
-            milestones.map(m=>`<div class="milestone-row">
-              <div class="ms-check ${m.completed_at?'done':''}" onclick="toggleMilestone('${m.id}','${p.id}','${m.completed_at?'':new Date().toISOString()}')">
-                ${m.completed_at?'✓':''}
+        <div id="upd-list-${p.id}">
+          ${updates.length===0 ? '<p class="text-sm text-grey">No updates posted yet.</p>' :
+            updates.slice(0,3).map(u => `<div class="update-row">
+              <div class="flex-between mb-1">
+                <span class="update-type-badge badge badge-${typeColors[u.update_type]||'grey'}">${u.update_type||'update'}</span>
+                <span class="mono text-xs text-grey">${formatDate(u.created_at)}</span>
               </div>
-              <div class="ms-info">
-                <div class="ms-title" style="${m.completed_at?'text-decoration:line-through;opacity:.6;':''}">${m.title}</div>
-                ${m.description?`<div class="ms-due">${m.description}</div>`:''}
-                ${m.due_date?`<div class="ms-due">Due: ${formatDate(m.due_date)}</div>`:''}
-              </div>
-              ${m.completed_at?`<span class="badge badge-green text-xs">${formatDate(m.completed_at)}</span>`:''}
+              ${u.title?`<div class="bold text-sm">${u.title}</div>`:''}
+              ${u.body?`<div class="text-sm text-grey mt-1">${u.body}</div>`:''}
             </div>`).join('')}
+          ${updates.length>3?`<div class="text-xs text-grey mt-2">${updates.length-3} more update${updates.length-3!==1?'s':''} not shown</div>`:''}
         </div>
 
-        ${isOwner?`<div id="add-ms-${p.id}" class="add-ms-form hidden">
+        <div id="add-upd-${p.id}" class="add-update-form hidden">
           <div class="form-row">
-            <div class="form-group" style="margin:0;"><label class="form-label form-required">Title</label>
-              <input type="text" id="ms-title-${p.id}" class="form-input" placeholder="e.g. PCB Design done" required></div>
-            <div class="form-group" style="margin:0;"><label class="form-label">Due Date</label>
-              <input type="date" id="ms-due-${p.id}" class="form-input"></div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label form-required">Title</label>
+              <input type="text" id="upd-title-${p.id}" class="form-input" placeholder="Update title"></div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Type</label>
+              <select id="upd-type-${p.id}" class="form-input">
+                <option value="general">General</option>
+                <option value="progress">Progress</option>
+                <option value="milestone">Milestone</option>
+                <option value="issue">Issue</option>
+              </select></div>
           </div>
-          <div class="form-group"><label class="form-label">Description</label>
-            <input type="text" id="ms-desc-${p.id}" class="form-input" placeholder="Optional details"></div>
+          <div class="form-group">
+            <label class="form-label">Body</label>
+            <textarea id="upd-body-${p.id}" class="form-input" rows="2" placeholder="Describe the update…"></textarea></div>
           <div style="display:flex;gap:.5rem;">
-            <button class="btn btn-teal btn-sm" onclick="addMilestone('${p.id}')">Add →</button>
-            <button class="btn btn-ghost btn-sm" onclick="toggleAddMs('add-ms-${p.id}')">Cancel</button>
+            <button class="btn btn-teal btn-sm" onclick="postUpdate('${p.id}')">Post →</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleAddUpdate('add-upd-${p.id}')">Cancel</button>
           </div>
-        </div>`:''}
+        </div>
 
         <!-- Team -->
         <div class="divider-thin mt-3"></div>
         <div class="flex-wrap gap-sm mt-2">
           <span class="mono text-xs text-grey">Team:</span>
-          ${members.map(m=>`<span class="chip ${m.role==='owner'?'chip-yellow':''}">${m.maker_profiles?.full_name||'Member'} <span class="badge badge-grey" style="font-size:.58rem;">${m.role}</span></span>`).join('')}
+          ${team.map(m=>`<span class="chip ${m.is_lead?'chip-yellow':''}">${m.maker_profiles?.full_name||'Member'}
+            <span class="badge badge-grey" style="font-size:.58rem;">${m.team_role||'member'}</span>
+          </span>`).join('')}
         </div>
       </div>
     </div>`;
   }).join('');
 }
 
-function toggleAddMs(id){ const el=$(id); el.classList.toggle('hidden'); }
+function toggleAddUpdate(id) { const el=$(id); el.classList.toggle('hidden'); }
 
-async function addMilestone(projectId){
-  const title=$(`ms-title-${projectId}`).value.trim();
-  if(!title) return;
-  const {error}=await db.from('project_milestones').insert({
-    project_id:projectId, title,
-    description:$(`ms-desc-${projectId}`).value.trim()||null,
-    due_date:$(`ms-due-${projectId}`).value||null,
+async function postUpdate(projectId) {
+  const title = $(`upd-title-${projectId}`).value.trim();
+  if (!title) return;
+  const { error } = await db.from('project_updates').insert({
+    project_id: projectId,
+    title,
+    update_type: $(`upd-type-${projectId}`).value,
+    body: $(`upd-body-${projectId}`).value.trim() || null,
+    visibility: 'public',
+    created_by: currentUser.id,
   });
-  if(error){alert(error.message);return;}
+  if (error) { alert(error.message); return; }
   await loadProjects();
 }
 
-async function toggleMilestone(msId,projectId,completedAt){
-  await db.from('project_milestones').update({completed_at:completedAt||null}).eq('id',msId);
+async function updateStatus(projectId, status) {
+  await db.from('projects').update({ status }).eq('id', projectId);
   await loadProjects();
 }
 
-async function updateStatus(projectId,status){
-  await db.from('projects').update({status}).eq('id',projectId);
-  await loadProjects();
-}
-
-async function toggleVisibility(projectId,current){
-  await db.from('projects').update({visibility:current==='public'?'private':'public'}).eq('id',projectId);
+async function toggleVisibility(projectId, current) {
+  await db.from('projects').update({ visibility: current==='public' ? 'private' : 'public' }).eq('id', projectId);
   await loadProjects();
 }
 </script>

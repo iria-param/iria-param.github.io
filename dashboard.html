@@ -30,99 +30,110 @@
 <script src="js/auth.js"></script><script src="js/nav.js"></script>
 <script src="js/sidebar.js"></script>
 <script>
-const TIERS=['Curious','Tinkerer','Builder','Maker','Innovator','Lab Pro'];
-const TBADGE=['badge-grey','badge-orange','badge-indigo','badge-teal','badge-orange','badge-green'];
+const TIERS  = ['Curious','Tinkerer','Builder','Maker','Innovator','Lab Pro'];
+const TBADGE = ['badge-grey','badge-orange','badge-indigo','badge-teal','badge-orange','badge-green'];
 
-onReady(async()=>{
-  await renderNav('dashboard.html');
-  const user = await Auth.requireAuth('auth.html');
-  if(!user) return;
-  const {data:prof} = await db.from('maker_profiles').select('*').eq('user_id',user.id).single();
-  const name = prof?.full_name||user.user_metadata?.full_name||'Maker';
-  const tier = prof?.tier_level??0;
-  renderSidebar('overview', prof, user);
+onReady(async () => {
+  try {
+    await renderNav('dashboard.html');
+    const user = await Auth.requireAuth('auth.html');
+    if (!user) return;
 
-  // Parallel loads — correct table names from ER diagram
-  const [chalRes, projRes, badgeRes, evRes] = await Promise.all([
-    db.from('challenge_completions').select('id, challenge_id, completed_at').eq('user_id',user.id),
-    db.from('project_members').select('projects(id,title,status,tier)').eq('user_id',user.id).limit(3),
-    db.from('user_badges').select('*, badges(name,badge_type,domain)').eq('user_id',user.id).order('earned_at',{ascending:false}).limit(5),
-    db.from('event_registrations').select('*, events(id,title,event_type,start_date)').eq('user_id',user.id).order('registered_at',{ascending:false}).limit(4),
-  ]);
+    const { data: prof } = await db.from('maker_profiles').select('*').eq('user_id', user.id).single();
+    const name = prof?.full_name || user.user_metadata?.full_name || 'Maker';
+    const tier = prof?.verification_tier ?? 0;
+    renderSidebar('overview', prof, user);
 
-  const completions = chalRes.data||[];
-  const projects    = (projRes.data||[]).map(m=>m.projects).filter(Boolean);
-  const badges      = badgeRes.data||[];
-  const events      = (evRes.data||[]).map(r=>r.events).filter(Boolean);
+    // Parallel loads — using real column names from DB
+    const [enrollRes, projRes, badgeRes, evRes] = await Promise.all([
+      db.from('explorer_enrollments').select('id, explorer_track_id, status, progress_percent, completed_at').eq('user_id', user.id),
+      db.from('project_members').select('projects(id,title,status,approval_status)').eq('user_id', user.id).limit(3),
+      db.from('user_badges').select('*, badges(name,badge_type)').eq('user_id', user.id).order('issued_at', { ascending: false }).limit(5),
+      db.from('event_registrations').select('*, events(id,title,event_type,start_at)').eq('user_id', user.id).order('created_at', { ascending: false }).limit(4),
+    ]);
 
-  $('dashContent').innerHTML=`
-    <div class="page-header">
-      <div class="ph-label">// Overview</div>
-      <div class="flex-between" style="flex-wrap:wrap;gap:.75rem;">
-        <h1>Welcome back, ${name.split(' ')[0]}.</h1>
-        <span class="badge ${TBADGE[tier]} mono">${TIERS[tier]}</span>
-      </div>
-    </div>
-    <div class="stats-row">
-      <div class="stat-cell"><div class="s-num">${completions.length}</div><div class="s-lbl">Challenges Done</div></div>
-      <div class="stat-cell"><div class="s-num">${projects.length}</div><div class="s-lbl">Projects</div></div>
-      <div class="stat-cell"><div class="s-num">${badges.length}</div><div class="s-lbl">Badges</div></div>
-      <div class="stat-cell"><div class="s-num">${events.length}</div><div class="s-lbl">Events</div></div>
-    </div>
-    <div class="grid-2" style="gap:2rem;">
-      <div>
-        <div class="flex-between mb-3"><h3>Recent Badges</h3><a href="dashboard-credentials.html" class="btn btn-sm btn-ghost">All →</a></div>
-        <div class="card" style="padding:1rem;">
-          ${badges.length===0
-            ?`<div class="text-center p-3 text-grey text-sm">No badges yet — complete a challenge or attend an event.</div>`
-            :badges.map(b=>`<div class="cred-item">
-                <div class="cred-icon">🏅</div>
-                <div style="flex:1;">
-                  <div class="bold text-sm">${b.badges?.name||'Badge'}</div>
-                  <div class="text-xs mono text-grey">${b.badges?.badge_type||''} · ${formatDate(b.earned_at)}</div>
-                </div>
-                ${renderBadge(b.badges?.domain||'General','grey')}
-              </div>`).join('')}
+    const enrollments = enrollRes.data || [];
+    const projects    = (projRes.data || []).map(m => m.projects).filter(Boolean);
+    const badges      = badgeRes.data || [];
+    const events      = (evRes.data || []).map(r => r.events).filter(Boolean);
+    const completed   = enrollments.filter(e => e.completed_at).length;
+
+    $('dashContent').innerHTML = `
+      <div class="page-header">
+        <div class="ph-label">// Overview</div>
+        <div class="flex-between" style="flex-wrap:wrap;gap:.75rem;">
+          <h1>Welcome back, ${name.split(' ')[0]}.</h1>
+          <span class="badge ${TBADGE[tier]} mono">${TIERS[tier]}</span>
         </div>
       </div>
-      <div>
-        <div class="flex-between mb-3"><h3>My Projects</h3><a href="dashboard-projects.html" class="btn btn-sm btn-ghost">All →</a></div>
-        ${projects.length===0
-          ?`<div class="empty-state" style="padding:2rem;">
-              <div class="empty-icon">🔧</div><h3>No projects yet</h3><p>Propose or join a project.</p>
-              <a href="projects.html" class="btn btn-primary btn-sm mt-2">Browse Projects →</a>
-            </div>`
-          :projects.map(p=>`<div class="card card-hover mb-2" style="padding:1.25rem;">
-              <div class="flex-between mb-1">${statusBadge(p.status)}<span class="badge badge-grey">${p.tier||'T1'}</span></div>
-              <div class="bold">${p.title}</div>
-            </div>`).join('')}
+      <div class="stats-row">
+        <div class="stat-cell"><div class="s-num">${completed}</div><div class="s-lbl">Tracks Done</div></div>
+        <div class="stat-cell"><div class="s-num">${projects.length}</div><div class="s-lbl">Projects</div></div>
+        <div class="stat-cell"><div class="s-num">${badges.length}</div><div class="s-lbl">Badges</div></div>
+        <div class="stat-cell"><div class="s-num">${events.length}</div><div class="s-lbl">Events</div></div>
       </div>
-      <div>
-        <div class="flex-between mb-3"><h3>My Learning</h3><a href="dashboard-learning.html" class="btn btn-sm btn-ghost">All →</a></div>
-        ${completions.length===0
-          ?`<div class="empty-state" style="padding:2rem;">
-              <div class="empty-icon">📡</div><h3>No challenges done</h3>
-              <a href="explorer.html" class="btn btn-primary btn-sm mt-2">Browse Challenges →</a>
-            </div>`
-          :`<div class="card" style="padding:1rem;">
-              <div class="flex-between mb-2"><span class="bold text-sm">${completions.length} challenge${completions.length!==1?'s':''} completed</span></div>
-              <a href="dashboard-learning.html" class="btn btn-sm btn-indigo">View Progress →</a>
-            </div>`}
-      </div>
-      <div>
-        <div class="flex-between mb-3"><h3>My Events</h3><a href="dashboard-events.html" class="btn btn-sm btn-ghost">All →</a></div>
-        ${events.length===0
-          ?`<div class="empty-state" style="padding:2rem;">
-              <div class="empty-icon">🎯</div><h3>No events registered</h3>
-              <a href="events.html" class="btn btn-primary btn-sm mt-2">Browse Events →</a>
-            </div>`
-          :events.map(ev=>`<div class="card card-hover mb-2" style="padding:1.25rem;">
-              <div class="flex-between mb-1"><span class="badge badge-indigo">${ev.event_type||'Event'}</span>
-              <span class="text-xs mono text-grey">${formatDate(ev.start_date)}</span></div>
-              <div class="bold text-sm">${ev.title}</div>
-            </div>`).join('')}
-      </div>
-    </div>`;
+      <div class="grid-2" style="gap:2rem;">
+        <div>
+          <div class="flex-between mb-3"><h3>Recent Badges</h3><a href="dashboard-credentials.html" class="btn btn-sm btn-ghost">All →</a></div>
+          <div class="card" style="padding:1rem;">
+            ${badges.length === 0
+              ? `<div class="text-center p-3 text-grey text-sm">No badges yet — complete a track or attend an event.</div>`
+              : badges.map(b => `<div class="cred-item">
+                  <div class="cred-icon">🏅</div>
+                  <div style="flex:1;">
+                    <div class="bold text-sm">${b.badges?.name || 'Badge'}</div>
+                    <div class="text-xs mono text-grey">${b.badges?.badge_type || ''} · ${formatDate(b.issued_at)}</div>
+                  </div>
+                </div>`).join('')}
+          </div>
+        </div>
+        <div>
+          <div class="flex-between mb-3"><h3>My Projects</h3><a href="dashboard-projects.html" class="btn btn-sm btn-ghost">All →</a></div>
+          ${projects.length === 0
+            ? `<div class="empty-state" style="padding:2rem;">
+                <div class="empty-icon">🔧</div><h3>No projects yet</h3><p>Propose or join a project.</p>
+                <a href="projects.html" class="btn btn-primary btn-sm mt-2">Browse Projects →</a>
+              </div>`
+            : projects.map(p => `<div class="card card-hover mb-2" style="padding:1.25rem;">
+                <div class="flex-between mb-1">${statusBadge(p.status)}<span class="badge badge-grey">${p.approval_status || ''}</span></div>
+                <div class="bold">${p.title}</div>
+              </div>`).join('')}
+        </div>
+        <div>
+          <div class="flex-between mb-3"><h3>My Learning</h3><a href="dashboard-learning.html" class="btn btn-sm btn-ghost">All →</a></div>
+          ${enrollments.length === 0
+            ? `<div class="empty-state" style="padding:2rem;">
+                <div class="empty-icon">📡</div><h3>No tracks enrolled</h3>
+                <a href="explorer.html" class="btn btn-primary btn-sm mt-2">Browse Tracks →</a>
+              </div>`
+            : `<div class="card" style="padding:1rem;">
+                <div class="flex-between mb-2">
+                  <span class="bold text-sm">${enrollments.length} track${enrollments.length !== 1 ? 's' : ''} enrolled</span>
+                  <span class="badge badge-green">${completed} done</span>
+                </div>
+                <a href="dashboard-learning.html" class="btn btn-sm btn-indigo">View Progress →</a>
+              </div>`}
+        </div>
+        <div>
+          <div class="flex-between mb-3"><h3>My Events</h3><a href="dashboard-events.html" class="btn btn-sm btn-ghost">All →</a></div>
+          ${events.length === 0
+            ? `<div class="empty-state" style="padding:2rem;">
+                <div class="empty-icon">🎯</div><h3>No events registered</h3>
+                <a href="events.html" class="btn btn-primary btn-sm mt-2">Browse Events →</a>
+              </div>`
+            : events.map(ev => `<div class="card card-hover mb-2" style="padding:1.25rem;">
+                <div class="flex-between mb-1">
+                  <span class="badge badge-indigo">${ev.event_type || 'Event'}</span>
+                  <span class="text-xs mono text-grey">${formatDate(ev.start_at)}</span>
+                </div>
+                <div class="bold text-sm">${ev.title}</div>
+              </div>`).join('')}
+        </div>
+      </div>`;
+  } catch (err) {
+    $('dashContent').innerHTML = `<div class="alert alert-error">Dashboard error: ${err.message}</div>`;
+    console.error('Dashboard error:', err);
+  }
 });
 </script>
 </body>

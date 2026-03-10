@@ -5,15 +5,13 @@
   <title>My Learning — Param Makersadda</title>
   <link rel="stylesheet" href="css/main.css">
   <style>
-    .challenge-row{display:flex;align-items:center;gap:1rem;padding:1rem;border-bottom:1px solid var(--grey);}
-    .challenge-row:last-child{border-bottom:none;}
-    .ch-num{width:32px;height:32px;background:var(--orange);border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.78rem;font-family:var(--font-mono);flex-shrink:0;}
-    .ch-info{flex:1;}
-    .ch-title{font-weight:700;font-size:.9rem;margin-bottom:.2rem;}
-    .ch-meta{font-size:.72rem;font-family:var(--font-mono);color:var(--grey-dark);}
-    .tier-section{margin-bottom:2.5rem;}
-    .tier-section .ts-head{padding:1rem 1.25rem;border-bottom:2px solid var(--ink);display:flex;align-items:center;justify-content:space-between;}
-    .submit-form{background:var(--grey-light);border:2px solid var(--ink);padding:1.25rem;margin:.5rem 1rem 1rem;}
+    .track-card{border:2px solid var(--ink);box-shadow:var(--shadow);margin-bottom:1.25rem;background:var(--paper);}
+    .tc-head{background:var(--ink);color:var(--paper);padding:.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;}
+    .tc-body{padding:1.25rem;}
+    .progress-bar-wrap{background:var(--grey);border:1px solid var(--grey-dark);height:10px;margin:.5rem 0;}
+    .progress-bar-fill{height:100%;background:var(--teal);transition:width .3s;}
+    .enroll-badge{background:var(--teal);color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .5rem;font-family:var(--font-mono);}
+    .not-enrolled{background:var(--grey-dark);color:#fff;font-size:.65rem;padding:.15rem .5rem;}
   </style>
 </head>
 <body>
@@ -22,9 +20,19 @@
   <aside class="sidebar" id="mainSidebar"></aside>
   <main class="main-content">
     <div class="page-header">
-      <div class="ph-label">// challenges + challenge_completions</div>
-      <h1>My Learning</h1>
+      <div class="ph-label">// explorer_tracks + explorer_enrollments</div>
+      <div class="flex-between" style="flex-wrap:wrap;gap:.75rem;">
+        <h1>My Learning</h1>
+        <a href="explorer.html" class="btn btn-primary btn-sm">Browse All Tracks →</a>
+      </div>
     </div>
+
+    <div class="filter-row" style="margin-bottom:1.5rem;">
+      <button class="filter-chip active" onclick="setFilter('all',this)">All Tracks</button>
+      <button class="filter-chip" onclick="setFilter('enrolled',this)">Enrolled</button>
+      <button class="filter-chip" onclick="setFilter('completed',this)">Completed</button>
+    </div>
+
     <div id="learningContent"><div class="loading"><div class="spinner"></div></div></div>
   </main>
 </div>
@@ -32,91 +40,143 @@
 <script src="js/config.js"></script><script src="js/utils.js"></script>
 <script src="js/auth.js"></script><script src="js/nav.js"></script><script src="js/sidebar.js"></script>
 <script>
-let currentUser, myCompletions=[];
+let currentUser, allTracks = [], myEnrollments = [];
+let currentFilter = 'all';
 
-onReady(async()=>{
-  await renderNav();
-  currentUser = await Auth.requireAuth('auth.html');
-  if(!currentUser) return;
-  const {data:prof}=await db.from('maker_profiles').select('*').eq('user_id',currentUser.id).single();
-  renderSidebar('learning',prof,currentUser);
-  await load();
+onReady(async () => {
+  try {
+    await renderNav();
+    currentUser = await Auth.requireAuth('auth.html');
+    if (!currentUser) return;
+    const { data: prof } = await db.from('maker_profiles').select('*').eq('user_id', currentUser.id).single();
+    renderSidebar('learning', prof, currentUser);
+    await loadData();
+  } catch(e) {
+    $('learningContent').innerHTML = `<div class="alert alert-error">${e.message}</div>`;
+  }
 });
 
-async function load(){
-  const [chalRes,compRes]=await Promise.all([
-    db.from('challenges').select('*, challenge_steps(id,step_order,description), challenge_materials(id,material_name,quantity), challenge_skills(id,skill_name), challenge_levels(id,level_order,title)').order('tier').order('created_at'),
-    db.from('challenge_completions').select('*').eq('user_id',currentUser.id),
+async function loadData() {
+  const [tracksRes, enrollRes] = await Promise.all([
+    db.from('explorer_tracks').select('id,title,slug,description,tier,domain,difficulty,estimated_hours,status,badge_enabled,certification_enabled').eq('status','active').order('tier'),
+    db.from('explorer_enrollments').select('*').eq('user_id', currentUser.id),
   ]);
-  const challenges=chalRes.data||[];
-  myCompletions=(compRes.data||[]).map(c=>c.challenge_id);
-
-  // Group by tier
-  const byTier={1:[],2:[],3:[]};
-  challenges.forEach(c=>{ if(byTier[c.tier]) byTier[c.tier].push(c); });
-
-  const TIER_COLORS={1:'var(--orange)',2:'var(--indigo)',3:'var(--teal)'};
-  const TIER_LABELS={1:'T1 — Fundamentals',2:'T2 — Problem Solving',3:'T3 — Open Innovation'};
-
-  let html='';
-  [1,2,3].forEach(tier=>{
-    const list=byTier[tier];
-    if(!list.length) return;
-    const done=list.filter(c=>myCompletions.includes(c.id)).length;
-    html+=`<div class="tier-section">
-      <div class="card" style="padding:0;border-left:4px solid ${TIER_COLORS[tier]};">
-        <div class="ts-head">
-          <div><span class="badge badge-${tier===1?'orange':tier===2?'indigo':'teal'} mb-1">T${tier}</span> <span class="bold ml-auto" style="margin-left:.5rem;">${TIER_LABELS[tier]}</span></div>
-          <span class="mono text-xs text-grey">${done}/${list.length} done</span>
-        </div>
-        <div class="progress" style="height:8px;border:none;border-bottom:2px solid var(--ink);border-radius:0;">
-          <div class="progress-bar ${tier===2?'indigo':tier===3?'teal':''}" style="width:${list.length?Math.round(done/list.length*100):0}%"></div>
-        </div>
-        ${list.map((ch,i)=>{
-          const isDone=myCompletions.includes(ch.id);
-          return `<div class="challenge-row">
-            <div class="ch-num" style="background:${isDone?'var(--green)':'var(--orange)'}">${isDone?'✓':(i+1)}</div>
-            <div class="ch-info">
-              <div class="ch-title">${ch.title}</div>
-              <div class="ch-meta">
-                ${ch.domain?`${ch.domain} · `:''}
-                ${ch.time_estimate?`⏱ ${ch.time_estimate}`:''}
-                ${ch.challenge_steps?.length?` · ${ch.challenge_steps.length} steps`:''}
-                ${ch.challenge_skills?.length?` · ${ch.challenge_skills.map(s=>s.skill_name).join(', ')}`:''}
-              </div>
-            </div>
-            ${isDone
-              ?`<span class="badge badge-green">Completed</span>`
-              :`<button class="btn btn-sm btn-primary" onclick="openSubmit('${ch.id}','${ch.title.replace(/'/g,"\\'")}')">Submit →</button>`}
-          </div>
-          <div id="submit-${ch.id}" class="submit-form hidden">
-            <div class="form-group"><label class="form-label">Submission Notes</label>
-              <textarea id="notes-${ch.id}" class="form-textarea" placeholder="Describe your work, what you built, what you learned..." rows="3"></textarea></div>
-            <div style="display:flex;gap:.5rem;">
-              <button class="btn btn-teal btn-sm" onclick="submitCompletion('${ch.id}')">Mark Complete →</button>
-              <button class="btn btn-ghost btn-sm" onclick="closeSubmit('${ch.id}')">Cancel</button>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
-  });
-
-  if(!html) html=`<div class="empty-state"><div class="empty-icon">📡</div><h3>No challenges yet</h3><p>Ask an admin to add challenges to the Explorer Hub.</p><a href="explorer.html" class="btn btn-primary btn-sm">Browse Explorer →</a></div>`;
-  $('learningContent').innerHTML=html;
+  allTracks = tracksRes.data || [];
+  myEnrollments = enrollRes.data || [];
+  render();
 }
 
-function openSubmit(id,title){ hide($(`submit-${id}`)===null?null:null); show($('submit-'+id)); }
-function closeSubmit(id){ hide($('submit-'+id)); }
+function setFilter(f, btn) {
+  currentFilter = f;
+  $$('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
 
-async function submitCompletion(challengeId){
-  const notes=$('notes-'+challengeId).value.trim();
-  const {error}=await db.from('challenge_completions').insert({
-    user_id:currentUser.id, challenge_id:challengeId,
-    completed_at:new Date().toISOString(), submission_notes:notes||null
+function render() {
+  let tracks = allTracks;
+  if (currentFilter === 'enrolled') {
+    const ids = myEnrollments.map(e => e.explorer_track_id);
+    tracks = allTracks.filter(t => ids.includes(t.id));
+  } else if (currentFilter === 'completed') {
+    const ids = myEnrollments.filter(e => e.completed_at).map(e => e.explorer_track_id);
+    tracks = allTracks.filter(t => ids.includes(t.id));
+  }
+
+  if (!tracks.length) {
+    $('learningContent').innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📡</div>
+      <h3>No tracks found</h3>
+      <p>${currentFilter==='enrolled'?'You haven\'t enrolled in any tracks yet.':'No tracks available.'}</p>
+      <a href="explorer.html" class="btn btn-primary btn-sm mt-2">Browse Tracks →</a>
+    </div>`;
+    return;
+  }
+
+  const tierLabel = { T1:'Curious', T2:'Tinkerer', T3:'Builder' };
+  const diffColor = { beginner:'badge-teal', intermediate:'badge-indigo', advanced:'badge-orange' };
+
+  $('learningContent').innerHTML = tracks.map(t => {
+    const enrollment = myEnrollments.find(e => e.explorer_track_id === t.id);
+    const progress = enrollment?.progress_percent ?? 0;
+    const isComplete = !!enrollment?.completed_at;
+
+    return `<div class="track-card">
+      <div class="tc-head">
+        <div>
+          <div class="flex-wrap gap-sm mb-1">
+            <span class="badge badge-grey">${t.tier||'T1'}</span>
+            ${t.domain?`<span class="badge badge-grey">${t.domain}</span>`:''}
+            ${t.difficulty?`<span class="badge ${diffColor[t.difficulty]||'badge-grey'}">${t.difficulty}</span>`:''}
+            ${t.badge_enabled?'<span class="badge badge-orange">🏅 Badge</span>':''}
+            ${t.certification_enabled?'<span class="badge badge-indigo">📜 Cert</span>':''}
+          </div>
+          <div style="font-weight:800;font-size:1rem;">${t.title}</div>
+          ${t.domain?`<div class="mono text-xs" style="opacity:.5;margin-top:.15rem;">${t.domain}</div>`:''}
+        </div>
+        <div>
+          ${isComplete
+            ? '<span class="enroll-badge">✓ COMPLETED</span>'
+            : enrollment
+            ? '<span class="enroll-badge">ENROLLED</span>'
+            : `<button class="btn btn-sm btn-teal" onclick="enroll('${t.id}')">Enroll →</button>`}
+        </div>
+      </div>
+      <div class="tc-body">
+        ${t.description?`<p class="text-sm text-grey mb-3">${t.description}</p>`:''}
+        ${t.estimated_hours?`<div class="mono text-xs text-grey mb-2">⏱ Est. ${t.estimated_hours}h</div>`:''}
+        ${enrollment ? `
+          <div class="flex-between text-sm mb-1">
+            <span>Progress</span><span class="mono">${progress}%</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${progress}%;"></div>
+          </div>
+          <div class="flex-between text-xs mono text-grey mt-1">
+            <span>Started: ${formatDate(enrollment.started_at)}</span>
+            ${isComplete?`<span>Completed: ${formatDate(enrollment.completed_at)}</span>`:''}
+          </div>
+          ${!isComplete?`
+            <div style="margin-top:1rem;">
+              <label class="form-label">Update Progress (%)</label>
+              <div style="display:flex;gap:.5rem;">
+                <input type="number" id="prog-${t.id}" class="form-input" min="0" max="100" value="${progress}" style="width:100px;">
+                <button class="btn btn-sm btn-indigo" onclick="updateProgress('${enrollment.id}','${t.id}')">Update</button>
+                <button class="btn btn-sm btn-green" onclick="markComplete('${enrollment.id}','${t.id}')">Mark Complete ✓</button>
+              </div>
+            </div>` : ''}` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function enroll(trackId) {
+  const { error } = await db.from('explorer_enrollments').insert({
+    explorer_track_id: trackId,
+    user_id: currentUser.id,
+    status: 'in_progress',
+    progress_percent: 0,
+    started_at: new Date().toISOString(),
   });
-  if(error){ alert(error.message); return; }
-  await load();
+  if (error) { alert(error.message); return; }
+  await loadData();
+}
+
+async function updateProgress(enrollId, trackId) {
+  const val = parseInt($(`prog-${trackId}`)?.value || 0);
+  const { error } = await db.from('explorer_enrollments')
+    .update({ progress_percent: Math.min(100, Math.max(0, val)) })
+    .eq('id', enrollId);
+  if (error) { alert(error.message); return; }
+  await loadData();
+}
+
+async function markComplete(enrollId, trackId) {
+  const { error } = await db.from('explorer_enrollments')
+    .update({ progress_percent: 100, completed_at: new Date().toISOString(), status: 'completed' })
+    .eq('id', enrollId);
+  if (error) { alert(error.message); return; }
+  await loadData();
 }
 </script>
 </body>

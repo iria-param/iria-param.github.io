@@ -9,14 +9,9 @@
     .ep-head{background:var(--ink);color:var(--paper);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;border-bottom:3px solid var(--orange);}
     .ep-body{padding:1.25rem;}
     .ep-meta{display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:.75rem;}
-    .ep-meta-item{display:flex;align-items:center;gap:.35rem;font-size:.78rem;font-family:var(--font-mono);}
-    .ep-meta-item svg{width:14px;height:14px;flex-shrink:0;}
-    .checkin-box{background:var(--grey-light);border:1px solid var(--grey);padding:1rem;margin-top:1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
-    .checkin-status{display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:.875rem;}
-    .checkin-dot{width:10px;height:10px;border-radius:50%;}
-    .upcoming-tag{background:var(--teal);color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .4rem;font-family:var(--font-mono);}
-    .past-tag{background:var(--grey-dark);color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .4rem;font-family:var(--font-mono);}
-    .badge-earned{background:var(--green);color:#fff;border:1px solid var(--ink);padding:.35rem .75rem;font-size:.7rem;font-weight:700;display:inline-flex;align-items:center;gap:.35rem;}
+    .ep-meta-item{font-size:.78rem;font-family:var(--font-mono);color:var(--grey-dark);}
+    .checkin-box{background:var(--grey-light);border:1px solid var(--grey);padding:.75rem 1rem;margin-top:.75rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .checkin-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:.35rem;}
   </style>
 </head>
 <body>
@@ -25,18 +20,17 @@
   <aside class="sidebar" id="mainSidebar"></aside>
   <main class="main-content">
     <div class="page-header">
-      <div class="ph-label">// events + event_registrations</div>
+      <div class="ph-label">// event_registrations + events + event_attendance</div>
       <div class="flex-between" style="flex-wrap:wrap;gap:.75rem;">
         <h1>My Events</h1>
         <a href="events.html" class="btn btn-primary btn-sm">Browse Events →</a>
       </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="tabs" id="eventTabs">
-      <button class="tab-btn active" data-tab="upcoming">Upcoming</button>
-      <button class="tab-btn" data-tab="past">Past</button>
-      <button class="tab-btn" data-tab="all">All Registrations</button>
+    <div class="filter-row" style="margin-bottom:1.5rem;" id="tabRow">
+      <button class="filter-chip active" onclick="setTab('upcoming',this)">Upcoming</button>
+      <button class="filter-chip" onclick="setTab('past',this)">Past</button>
+      <button class="filter-chip" onclick="setTab('all',this)">All</button>
     </div>
 
     <div id="eventsContent"><div class="loading"><div class="spinner"></div></div></div>
@@ -46,131 +40,119 @@
 <script src="js/config.js"></script><script src="js/utils.js"></script>
 <script src="js/auth.js"></script><script src="js/nav.js"></script><script src="js/sidebar.js"></script>
 <script>
-let currentUser;
-let allRegistrations = [];
+let currentUser, allRegs = [], myAttendance = [];
 let currentTab = 'upcoming';
 
 onReady(async () => {
-  await renderNav();
-  currentUser = await Auth.requireAuth('auth.html');
-  if (!currentUser) return;
-  const {data: prof} = await db.from('maker_profiles').select('*').eq('user_id', currentUser.id).single();
-  renderSidebar('events', prof, currentUser);
-  initTabs('eventTabs', (tab) => { currentTab = tab; renderTab(); });
-  await loadRegistrations();
+  try {
+    await renderNav();
+    currentUser = await Auth.requireAuth('auth.html');
+    if (!currentUser) return;
+    const { data: prof } = await db.from('maker_profiles').select('*').eq('user_id', currentUser.id).single();
+    renderSidebar('events', prof, currentUser);
+    await loadData();
+  } catch(e) {
+    $('eventsContent').innerHTML = `<div class="alert alert-error">${e.message}</div>`;
+  }
 });
 
-async function loadRegistrations() {
-  const {data, error} = await db
-    .from('event_registrations')
-    .select('*, events(*)')
-    .eq('user_id', currentUser.id)
-    .order('registered_at', {ascending: false});
+async function loadData() {
+  const [regRes, attRes] = await Promise.all([
+    db.from('event_registrations')
+      .select('*, events(id,title,slug,event_type,venue,city,start_at,end_at,capacity,status,summary)')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false }),
+    db.from('event_attendance')
+      .select('*')
+      .eq('user_id', currentUser.id),
+  ]);
+  allRegs = regRes.data || [];
+  myAttendance = attRes.data || [];
+  renderTab();
+}
 
-  if (error) { $('eventsContent').innerHTML = `<div class="alert alert-error">${error.message}</div>`; return; }
-  allRegistrations = data || [];
+function setTab(tab, btn) {
+  currentTab = tab;
+  $$('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
   renderTab();
 }
 
 function renderTab() {
   const now = new Date();
-  let regs = allRegistrations;
-
+  let regs = allRegs;
   if (currentTab === 'upcoming') {
-    regs = allRegistrations.filter(r => r.events && new Date(r.events.event_date) >= now);
+    regs = allRegs.filter(r => r.events && new Date(r.events.start_at) >= now);
   } else if (currentTab === 'past') {
-    regs = allRegistrations.filter(r => r.events && new Date(r.events.event_date) < now);
+    regs = allRegs.filter(r => r.events && new Date(r.events.start_at) < now);
   }
 
   if (!regs.length) {
-    const emptyMsg = currentTab === 'upcoming'
-      ? 'No upcoming events. <a href="events.html" class="link">Browse events →</a>'
-      : currentTab === 'past'
-      ? 'No past event registrations yet.'
-      : 'You haven\'t registered for any events yet. <a href="events.html" class="link">Browse events →</a>';
-    $('eventsContent').innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><h3>No events found</h3><p>${emptyMsg}</p></div>`;
+    $('eventsContent').innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📅</div>
+      <h3>No ${currentTab === 'all' ? '' : currentTab + ' '}events</h3>
+      <p>${currentTab==='upcoming' ? 'No upcoming registrations.' : currentTab==='past' ? 'No past events yet.' : 'Register for an event to see it here.'}
+        <a href="events.html" class="link">Browse events →</a></p>
+    </div>`;
     return;
   }
 
-  $('eventsContent').innerHTML = regs.map(r => renderEventCard(r)).join('');
+  $('eventsContent').innerHTML = regs.map(r => renderCard(r)).join('');
 }
 
-function renderEventCard(r) {
+function renderCard(r) {
   const ev = r.events;
   if (!ev) return '';
   const now = new Date();
-  const evDate = new Date(ev.event_date);
-  const isPast = evDate < now;
-  const isToday = evDate.toDateString() === now.toDateString();
-  const checkedIn = !!r.checked_in_at;
+  const start = new Date(ev.start_at);
+  const isPast = start < now;
+  const isToday = start.toDateString() === now.toDateString();
+  const attendance = myAttendance.find(a => a.event_id === ev.id);
+  const checkedIn = attendance?.attendance_status === 'present';
 
   return `<div class="event-panel">
     <div class="ep-head">
       <div>
         <div class="flex-wrap gap-sm mb-1">
-          ${isPast ? '<span class="past-tag">PAST</span>' : isToday ? '<span class="upcoming-tag">TODAY</span>' : '<span class="upcoming-tag">UPCOMING</span>'}
-          ${statusBadge(r.status || 'registered')}
+          ${isToday ? '<span style="background:var(--teal);color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .4rem;">TODAY</span>'
+            : isPast ? '<span style="background:var(--grey-dark);color:#fff;font-size:.65rem;padding:.15rem .4rem;">PAST</span>'
+            : '<span style="background:var(--orange);color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .4rem;">UPCOMING</span>'}
           ${ev.event_type ? `<span class="badge badge-grey">${ev.event_type.replace(/_/g,' ')}</span>` : ''}
-          ${ev.credentials_issued ? '<span class="badge badge-orange">🏅 Badge Eligible</span>' : ''}
+          <span class="badge badge-${r.registration_status==='confirmed'?'green':'grey'}">${r.registration_status||'registered'}</span>
         </div>
         <div style="font-weight:800;font-size:1.05rem;">${ev.title}</div>
-        ${ev.location ? `<div class="mono text-xs" style="opacity:.5;margin-top:.2rem;">📍 ${ev.location}</div>` : ''}
+        ${ev.venue ? `<div class="mono text-xs" style="opacity:.5;margin-top:.15rem;">📍 ${ev.venue}${ev.city?', '+ev.city:''}</div>` : ''}
       </div>
-      ${!isPast && !checkedIn ? `<div>
-        <button class="btn btn-sm btn-teal" onclick="cancelRegistration('${r.id}')">Cancel Registration</button>
-      </div>` : ''}
+      ${!isPast && r.registration_status !== 'cancelled' ? `
+        <button class="btn btn-sm btn-ghost" onclick="cancelReg('${r.id}')">Cancel Registration</button>` : ''}
     </div>
     <div class="ep-body">
+      ${ev.summary ? `<p class="text-sm text-grey mb-3">${ev.summary}</p>` : ''}
       <div class="ep-meta">
-        <div class="ep-meta-item">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          <span>${formatDate(ev.event_date)}</span>
-        </div>
-        ${ev.duration_hours ? `<div class="ep-meta-item">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span>${ev.duration_hours}h</span>
-        </div>` : ''}
-        ${ev.max_attendees ? `<div class="ep-meta-item">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          <span>Max ${ev.max_attendees}</span>
-        </div>` : ''}
-        <div class="ep-meta-item">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-          <span>Registered ${formatDate(r.registered_at)}</span>
-        </div>
+        <span class="ep-meta-item">📅 ${formatDate(ev.start_at)}</span>
+        ${ev.end_at ? `<span class="ep-meta-item">→ ${formatDate(ev.end_at)}</span>` : ''}
+        ${ev.capacity ? `<span class="ep-meta-item">👥 Capacity: ${ev.capacity}</span>` : ''}
+        <span class="ep-meta-item">🗓 Registered: ${formatDate(r.created_at)}</span>
       </div>
-
-      ${ev.description ? `<p class="text-sm text-grey mb-3">${ev.description}</p>` : ''}
-
-      <!-- Check-in status -->
       <div class="checkin-box">
-        <div class="checkin-status">
-          <div class="checkin-dot" style="background:${checkedIn ? 'var(--green)' : isPast ? 'var(--grey-dark)' : 'var(--orange)'};"></div>
-          <span>${checkedIn ? '✓ Checked In' : isPast ? 'Did Not Check In' : 'Not Yet Checked In'}</span>
-        </div>
-        ${checkedIn ? `<span class="mono text-xs text-grey">at ${formatDate(r.checked_in_at)}</span>` : ''}
-        ${isToday && !checkedIn ? `<span class="badge badge-orange">Check-in opens today</span>` : ''}
+        <span>
+          <span class="checkin-dot" style="background:${checkedIn?'var(--green)':isPast?'var(--grey-dark)':'var(--orange)'}"></span>
+          <strong>${checkedIn ? '✓ Attended' : isPast ? 'Did not check in' : 'Check-in pending'}</strong>
+        </span>
+        ${checkedIn && attendance?.verified_at ? `<span class="mono text-xs text-grey">Verified: ${formatDate(attendance.verified_at)}</span>` : ''}
+        ${isToday && !checkedIn ? `<span class="badge badge-orange">Show this to staff to check in</span>` : ''}
       </div>
-
-      <!-- Badge earned if credential was issued -->
-      ${ev.credentials_issued && isPast && checkedIn ? `
-        <div style="margin-top:.75rem;">
-          <span class="badge-earned">🏅 Event Credential Earned</span>
-        </div>` : ''}
-
-      ${ev.credentials_issued && isPast && !checkedIn ? `
-        <div style="margin-top:.75rem;">
-          <span class="badge badge-grey text-xs">No credential — check-in required</span>
-        </div>` : ''}
     </div>
   </div>`;
 }
 
-async function cancelRegistration(regId) {
-  if (!confirm('Cancel this event registration?')) return;
-  const {error} = await db.from('event_registrations').delete().eq('id', regId).eq('user_id', currentUser.id);
+async function cancelReg(regId) {
+  if (!confirm('Cancel this registration?')) return;
+  const { error } = await db.from('event_registrations')
+    .update({ registration_status: 'cancelled' })
+    .eq('id', regId).eq('user_id', currentUser.id);
   if (error) { alert(error.message); return; }
-  await loadRegistrations();
+  await loadData();
 }
 </script>
 </body>

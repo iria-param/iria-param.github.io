@@ -10,8 +10,8 @@ function renderSidebar(activePage, profile, user) {
   if (!el) return;
 
   const name   = profile?.full_name || user?.user_metadata?.full_name || 'Maker';
-  const handle = profile?.public_url_slug || user?.email?.split('@')[0] || 'maker';
-  const tier   = profile?.tier_level ?? 0;
+  const handle = profile?.slug || user?.email?.split('@')[0] || 'maker';
+  const tier   = profile?.verification_tier ?? 0;
 
   const links = [
     { key:'overview',              href:'dashboard.html',             label:'Overview' },
